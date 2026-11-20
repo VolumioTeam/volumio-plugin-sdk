@@ -45,7 +45,7 @@ A plugin repository builds its release with the reusable workflow:
 ```yaml
 jobs:
   build:
-    uses: VolumioTeam/volumio-plugin-sdk/.github/workflows/build.yml@main
+    uses: VolumioTeam/volumio-plugin-sdk/.github/workflows/build.yml@v0.2.0
     with:
       path: .   # plugin folder inside the repository
 ```
@@ -66,6 +66,10 @@ scripts/build.sh <plugin-dir> <armhf|amd64|arm64> [out-dir]
 | --- | --- |
 | `G3.native-arch` | Every `.node` module is built for the target architecture |
 | `G3.lockfile` | `package-lock.json` is committed; a warning for v1 plugins |
+
+## Releasing
+
+Bump `version` in `package.json` and the `sdk-ref` default in `.github/workflows/build.yml` together (a test fails otherwise), merge, then tag `v<version>` on `main`. Release tags cannot be moved or deleted. Plugin repositories call the workflow at a tag, never at `main`; actions are pinned by commit and the build image by digest.
 
 ```bash
 npm test

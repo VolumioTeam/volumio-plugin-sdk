@@ -10,9 +10,9 @@ on:
         type: string
         default: .
       sdk-ref:
-        description: volumio-plugin-sdk ref whose CLI builds the plugin
+        description: volumio-plugin-sdk ref whose CLI builds the plugin; defaults to this release
         type: string
-        default: main
+        default: v0.2.0
 
 permissions:
   contents: read
@@ -23,15 +23,15 @@ jobs:
     outputs:
       arch: ${{ steps.arch.outputs.arch }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           path: plugin
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           repository: VolumioTeam/volumio-plugin-sdk
           ref: ${{ inputs.sdk-ref }}
           path: sdk
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 20
       - run: npm ci --prefix sdk --omit=dev --no-audit --no-fund
@@ -50,21 +50,21 @@ jobs:
       matrix:
         arch: ${{ fromJSON(needs.plan.outputs.arch) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           path: plugin
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           repository: VolumioTeam/volumio-plugin-sdk
           ref: ${{ inputs.sdk-ref }}
           path: sdk
       - if: matrix.arch != 'amd64'
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3.7.0
       - env:
           PLUGIN_PATH: plugin/${{ inputs.path }}
           ARCH: ${{ matrix.arch }}
         run: sdk/scripts/build.sh "$PLUGIN_PATH" "$ARCH" dist-plugin
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
         with:
           name: plugin-${{ matrix.arch }}
