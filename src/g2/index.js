@@ -15,4 +15,4 @@ export const rawG2 = (dir) => [...lintDir(dir), ...shellDir(dir), ...secretFindi
  * @param {{ id?: string, source?: 'v1' | 'v2' }} plugin
  * @param {Record<string, Record<string, number>>} [baseline]
  */
-export const g2 = (dir, { id, source }, baseline = BASELINE) => applyBaseline(rawG2(dir), id ? baseline[id] : undefined, source);
+export const g2 = (dir, { id, source }, baseline = BASELINE) => applyBaseline(rawG2(dir), id && Object.hasOwn(baseline, id) ? baseline[id] : undefined, source);

@@ -39,3 +39,30 @@ test('writing sudoers', () => {
 test('commented lines are ignored', () => {
   assert.deepEqual(rules(safe('# apt-get install foo\n  # wget x')), []);
 });
+
+test('a checksum in a comment or in echoed text is not a check', () => {
+  assert.deepEqual(rules(safe('# TODO: sha256sum -c\ncurl -o payload https://example.com/p')), ['G2.shell.download:4']);
+  assert.deepEqual(rules(safe('echo "sha256sum later"\nwget https://example.com/p')), ['G2.shell.download:4']);
+});
+
+test('a checksum piped from echo is a check', () => {
+  assert.deepEqual(rules(safe('wget -O f https://example.com/f\necho "abc  f" | sha256sum -c -')), []);
+});
+
+test('text an echo prints is not a command; a string a shell runs is', () => {
+  assert.deepEqual(rules(safe('echo "Run apt-get install foo manually"\nprintf \'%s\\n\' "use || true"')), []);
+  assert.deepEqual(rules(safe('bash -c "apt-get install foo"')), ['G2.shell.package-manager:3']);
+});
+
+test('a trailing comment is not code', () => {
+  assert.deepEqual(rules(safe('rm x # || true')), []);
+});
+
+test('a # inside quotes does not start a comment', () => {
+  assert.deepEqual(rules(safe("echo ' #'; apt-get install foo\necho \"a # b\" && rm x || true")), ['G2.shell.package-manager:3', 'G2.shell.or-true:4']);
+});
+
+test('only the arguments of the print command are text', () => {
+  assert.deepEqual(rules(safe("echo ready; bash -c 'apt-get install foo'\necho \"`apt-get install foo`\"")), ['G2.shell.package-manager:3', 'G2.shell.package-manager:4']);
+  assert.deepEqual(rules(safe("echo 'apt-get install foo' && echo done")), []);
+});
