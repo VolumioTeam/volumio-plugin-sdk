@@ -4,6 +4,7 @@ import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
 import { check, load } from './check.js';
+import { runAudit } from './audit.js';
 
 const ARCH = { arm: 'armhf', x64: 'amd64', arm64: 'arm64' };
 const ELF_MACHINE = { 40: 'armhf', 62: 'amd64', 183: 'arm64' };
@@ -120,7 +121,9 @@ export function packagePlugin(src, { out, arch = archOf(process.arch), epoch, me
   const pkg = existsSync(pkgFile) ? JSON.parse(readFileSync(pkgFile, 'utf8')) : {};
 
   const gates = check(stage, { built: true, functions, baseline });
-  const findings = [...gates.findings, ...installDependencies(stage, pkg, gates.source), ...nativeFindings(stage, arch)]
+  const installed = installDependencies(stage, pkg, gates.source);
+  const audit = Object.keys(pkg.dependencies ?? {}).length ? runAudit(stage, gates.source) : [];
+  const findings = [...gates.findings, ...installed, ...audit, ...nativeFindings(stage, arch)]
     .filter((f) => f.severity !== 'todo');
 
   const name = `${gates.id}-${gates.version}-${arch}`;

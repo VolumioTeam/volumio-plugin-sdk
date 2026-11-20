@@ -1,12 +1,13 @@
 import { readFileSync } from 'node:fs';
 import { lintDir } from './js.js';
 import { shellDir } from './shell.js';
+import { secretFindings } from './secrets.js';
 import { applyBaseline } from './baseline.js';
 
 export const BASELINE = JSON.parse(readFileSync(new URL('../../registry/g2-baseline.json', import.meta.url), 'utf8'));
 
 /** Every G2 finding of a plugin, before the baseline is applied. */
-export const rawG2 = (dir) => [...lintDir(dir), ...shellDir(dir)];
+export const rawG2 = (dir) => [...lintDir(dir), ...shellDir(dir), ...secretFindings(dir)];
 
 /**
  * Gate G2 with the plugin's baseline applied.
