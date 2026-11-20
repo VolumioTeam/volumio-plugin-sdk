@@ -20,7 +20,8 @@
     "G2.js.sync-exec|index.js": 1,
     "G2.js.console-log|ui/assets/firebase-Bpe4sERF.js": 4,
     "G2.js.console-log|ui/assets/hls-C2ZFWO1Z.js": 1,
-    "G2.shell.set-e|install.sh": 1
+    "G2.shell.set-e|install.sh": 1,
+    "G2.secret|ui/assets/index-DDzmwuMK.js": 1
   },
   "audio_keepalive": {
     "G2.js.shell|index.js": 1,

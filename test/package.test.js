@@ -103,3 +103,13 @@ test('a gate error in the built package makes the build fail, findings in the pr
   assert.equal(result.ok, false);
   assert.deepEqual(result.provenance.gates.findings.map((f) => f.rule), ['G2.js.console-log']);
 });
+
+test('the gates see the files the build writes', () => {
+  const out = mkdtempSync(join(tmpdir(), 'vpk-out-'));
+  const src = plugin({
+    'package.json': { name: 'example_plugin', version: '1.2.3', main: 'index.js', scripts: { build: 'node gen.js' } },
+    'gen.js': "require('fs').writeFileSync('client.pem', '-----BEGIN' + ' PRIVATE KEY-----\\n');",
+  });
+  const result = packagePlugin(src, { ...options(out), baseline: {} });
+  assert.ok(result.provenance.gates.findings.some((f) => f.rule === 'G2.secret' && f.file === 'client.pem'));
+});
