@@ -34,6 +34,35 @@ npx volumio-plugin check [plugin-dir ...] [--built] [--json]
 
 Inline `eslint-disable` comments are ignored. `registry/g2-baseline.json` holds the violations each published plugin has today: they show as one warning per rule and file, and any new one blocks. A v1 plugin with no baseline gets warnings; a v2 plugin gets errors. Regenerate it with `node scripts/g2-baseline.js <plugins-dir>`, using the ShellCheck version CI pins.
 
+## Build
+
+A plugin repository builds its release with the reusable workflow:
+
+```yaml
+jobs:
+  build:
+    uses: VolumioTeam/volumio-plugin-sdk/.github/workflows/build.yml@main
+    with:
+      path: .   # plugin folder inside the repository
+```
+
+It runs one build per architecture the manifest declares (`volumio-plugin arch`), each through `scripts/build.sh`, in the Volumio build container: Debian Bookworm, Node 20, ShellCheck from Bookworm, under QEMU for ARM. Run the same build locally with Docker:
+
+```bash
+scripts/build.sh <plugin-dir> <armhf|amd64|arm64> [out-dir]
+```
+
+`volumio-plugin package` copies the plugin without `.git`, `.github`, `node_modules` and test folders, installs the production dependencies (after `npm run build` when the plugin has one), runs G1 `--built` and G2 on the result, and writes:
+
+- `<id>-<version>-<arch>.zip`: files at the root, sorted, one mtime (the commit time, or `SOURCE_DATE_EPOCH`), so the same commit gives the same bytes
+- `<zip>.sha256`
+- `<id>-<version>-<arch>.provenance.json`: source repository and commit, workflow run, SDK version, every gate finding
+
+| Rule | Checks |
+| --- | --- |
+| `G3.native-arch` | Every `.node` module is built for the target architecture |
+| `G3.lockfile` | `package-lock.json` is committed; a warning for v1 plugins |
+
 ```bash
 npm test
 ```
