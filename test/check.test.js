@@ -118,3 +118,13 @@ test('G2 on a v1 plugin in its baseline: one warning per known rule and file', (
   const baseline = { radio_paradise: { 'G2.js.console-log|index.js': 2 } };
   assert.deepEqual(rules(check(dir, { ...opts, baseline })), ['warning G2.js.console-log', 'todo G1.v2-fields']);
 });
+
+test('a v1 built package with main in a build folder only gets a warning', () => {
+  const dir = plugin({ ...required, 'package.json': { ...v1Package, main: './dist/index.js' } });
+  assert.deepEqual(rules(check(dir, { ...opts, built: true, baseline: {} })), ['warning G1.main', 'todo G1.v2-fields']);
+});
+
+test('the result carries the version', () => {
+  const dir = plugin({ ...required, 'volumio-plugin.json': v2Manifest, 'package.json': { main: 'index.js' } });
+  assert.equal(check(dir, opts).version, '2.1.0');
+});

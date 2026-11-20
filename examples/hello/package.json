@@ -1,0 +1,20 @@
+{
+  "name": "hello_volumio",
+  "version": "1.0.0",
+  "description": "Smallest plugin the Volumio build workflow is tested on",
+  "main": "index.js",
+  "license": "MIT",
+  "engines": { "node": ">=20", "volumio": ">=4" },
+  "volumio_info": {
+    "prettyName": "Hello Volumio",
+    "icon": "fa-music",
+    "plugin_type": "miscellanea",
+    "os": ["bookworm"],
+    "architectures": ["armhf", "amd64"],
+    "details": "Says hello in the log when it starts",
+    "changelog": ""
+  },
+  "dependencies": {
+    "kew": "^0.7.0"
+  }
+}
