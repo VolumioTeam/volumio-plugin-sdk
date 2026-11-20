@@ -2,6 +2,7 @@
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync } from 'node:fs';
+import { parseArgs } from 'node:util';
 import { check } from '../src/check.js';
 import { declaredArches, packagePlugin } from '../src/package.js';
 import { localSigner, releaseStatement, signRelease, verifyRelease } from '../src/sign.js';
@@ -24,10 +25,8 @@ const print = (result) => {
   return [head, ...lines].join('\n') + '\n';
 };
 
-const VALUE_FLAGS = new Set(['--out', '--key', '--key-id']);
-const valuesOf = (args, flag) => args.flatMap((a, i) => (a === flag ? [args[i + 1]] : []));
-const valueOf = (args, flag) => valuesOf(args, flag)[0];
-const positional = (args) => args.filter((a, i) => !a.startsWith('--') && !VALUE_FLAGS.has(args[i - 1]));
+// Strict: an unknown option, or an option whose value looks like another option, is a usage error.
+const parse = (args, options = {}) => parseArgs({ args, options, allowPositionals: true });
 const usage = () => {
   process.stderr.write(USAGE);
   return 2;
@@ -61,28 +60,27 @@ const meta = {
 
 const commands = {
   check(args) {
-    const built = args.includes('--built');
-    const dirs = positional(args);
-    const results = (dirs.length ? dirs : ['.']).map((dir) => check(dir, { built }));
-    process.stdout.write(args.includes('--json') ? `${JSON.stringify(results, null, 2)}\n` : results.map(print).join(''));
+    const { values, positionals: dirs } = parse(args, { built: { type: 'boolean' }, json: { type: 'boolean' } });
+    const results = (dirs.length ? dirs : ['.']).map((dir) => check(dir, { built: values.built }));
+    process.stdout.write(values.json ? `${JSON.stringify(results, null, 2)}\n` : results.map(print).join(''));
     return results.some((r) => r.findings.some((f) => f.severity === 'error')) ? 1 : 0;
   },
   package(args) {
-    const dir = positional(args)[0] ?? '.';
-    const result = packagePlugin(dir, { out: valueOf(args, '--out') ?? 'dist-plugin', epoch: epochOf(dir), meta });
+    const { values, positionals } = parse(args, { out: { type: 'string', default: 'dist-plugin' } });
+    const dir = positionals[0] ?? '.';
+    const result = packagePlugin(dir, { out: values.out, epoch: epochOf(dir), meta });
     process.stdout.write(print({ id: result.provenance.id, findings: result.provenance.gates.findings }));
     process.stdout.write(`${result.zip}\nsha256 ${result.sha256}\n`);
     return result.ok ? 0 : 1;
   },
   arch(args) {
-    process.stdout.write(`${JSON.stringify(declaredArches(positional(args)[0] ?? '.'))}\n`);
+    process.stdout.write(`${JSON.stringify(declaredArches(parse(args).positionals[0] ?? '.'))}\n`);
     return 0;
   },
   // A development key: the store signs releases with its KMS key.
   sign(args) {
-    const [zip] = positional(args);
-    const key = valueOf(args, '--key');
-    const keyId = valueOf(args, '--key-id');
+    const { values, positionals: [zip] } = parse(args, { key: { type: 'string' }, 'key-id': { type: 'string' } });
+    const { key, 'key-id': keyId } = values;
     if (!zip || !key || !keyId) return usage();
     const provenance = JSON.parse(readFileSync(zip.replace(/\.zip$/, '.provenance.json'), 'utf8'));
     const statement = releaseStatement({ ...provenance, sha256: sha256Of(zip) });
@@ -92,8 +90,8 @@ const commands = {
     return 0;
   },
   verify(args) {
-    const [zip] = positional(args);
-    const keys = Object.fromEntries(valuesOf(args, '--key').map(trustedKey));
+    const { values, positionals: [zip] } = parse(args, { key: { type: 'string', multiple: true, default: [] } });
+    const keys = Object.fromEntries(values.key.map(trustedKey));
     if (!zip || !Object.keys(keys).length) return usage();
     const envelope = JSON.parse(readFileSync(`${zip}.sig`, 'utf8'));
     const statement = verifyRelease(envelope, { keys, sha256: sha256Of(zip) });
@@ -110,6 +108,6 @@ if (!commands[command]) {
     process.exitCode = commands[command](args);
   } catch (e) {
     process.stderr.write(`${e instanceof Error ? e.message : String(e)}\n`);
-    process.exitCode = 1;
+    process.exitCode = String(e?.code).startsWith('ERR_PARSE_ARGS') ? usage() : 1;
   }
 }

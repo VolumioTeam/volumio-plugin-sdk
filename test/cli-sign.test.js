@@ -5,8 +5,9 @@ import { appendFileSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const cli = (...args) => spawnSync('node', [new URL('../bin/volumio-plugin.js', import.meta.url).pathname, ...args], { encoding: 'utf8' });
+const cli = (...args) => spawnSync('node', [fileURLToPath(new URL('../bin/volumio-plugin.js', import.meta.url)), ...args], { encoding: 'utf8' });
 
 test('sign then verify a package; a changed zip or an unknown key fails', () => {
   const dir = mkdtempSync(join(tmpdir(), 'vps-'));
@@ -26,4 +27,6 @@ test('sign then verify a package; a changed zip or an unknown key fails', () => 
   appendFileSync(zip, 'tampered');
   assert.match(cli('verify', zip, '--key', `dev-1=${join(dir, 'pub.pem')}`).stderr, /sha256/);
   assert.equal(cli('sign', zip).status, 2);
+  assert.equal(cli('sign', zip, '--key-id', '--key', join(dir, 'priv.pem')).status, 2, 'an option is not the value of another');
+  assert.equal(cli('sign', zip, '--key', join(dir, 'priv.pem'), '--key-id', 'dev=1').status, 1, 'verify could not name this key');
 });

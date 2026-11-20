@@ -5,6 +5,8 @@ import { sign as cryptoSign, verify as cryptoVerify } from 'node:crypto';
 
 export const PAYLOAD_TYPE = 'application/vnd.volumio.plugin-release+json';
 const STATEMENT_TYPE = 'volumio.plugin.release/v1';
+// A key id is written in the envelope and named on the command line as <id>=<public.pem>.
+const KEY_ID = /^[A-Za-z0-9._-]{1,64}$/;
 
 /** @param {{ id: string, version: string, arch: string, sha256: string, source?: { repository?: string, commit?: string } }} provenance */
 export const releaseStatement = ({ id, version, arch, sha256, source = {} }) => ({
@@ -22,6 +24,7 @@ export const pae = (type, body) =>
 
 /** @param {(bytes: Buffer) => Buffer} sign an Ed25519 signer: a local key in development, the KMS in the store */
 export function signRelease(statement, { keyId, sign }) {
+  if (!KEY_ID.test(keyId ?? '')) throw new Error(`Invalid key id ${JSON.stringify(keyId)}: use letters, digits, dot, dash, underscore`);
   const body = Buffer.from(JSON.stringify(statement));
   return {
     payloadType: PAYLOAD_TYPE,

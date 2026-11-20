@@ -70,3 +70,13 @@ test('a malformed envelope is rejected with a clear error', () => {
   assert.throws(() => verifyRelease({}, { keys, sha256: provenance.sha256 }), /payload type/);
   assert.throws(() => verifyRelease({ payloadType: PAYLOAD_TYPE, payload: 'x', signatures: [] }, { keys, sha256: provenance.sha256 }), /signature/);
 });
+
+test('a key id must be one verify can name: letters, digits, dot, dash, underscore', () => {
+  assert.throws(() => signed('dev=1'), /key id/);
+  assert.throws(() => signed(''), /key id/);
+});
+
+test('the package exposes the signing API for the device verifier', async () => {
+  const api = await import('@volumio/plugin-sdk/sign');
+  assert.equal(typeof api.verifyRelease, 'function');
+});
