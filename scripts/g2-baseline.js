@@ -4,12 +4,19 @@
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { rawG2 } from '../src/g2/index.js';
+import { SHELLCHECK_VERSION, shellcheckVersion } from '../src/g2/shell.js';
 import { countByKey } from '../src/g2/baseline.js';
 
 const root = process.argv[2];
 if (!root) {
   process.stderr.write('Usage: node scripts/g2-baseline.js <plugins-dir>\n');
   process.exit(2);
+}
+// Without the pinned ShellCheck its counts would drop out of the baseline, and come back as new violations.
+const found = shellcheckVersion();
+if (found !== SHELLCHECK_VERSION) {
+  process.stderr.write(`ShellCheck ${SHELLCHECK_VERSION} is required to record the baseline (found ${found ?? 'none'}): run it in the build container\n`);
+  process.exit(1);
 }
 
 const idOf = (dir) => {
