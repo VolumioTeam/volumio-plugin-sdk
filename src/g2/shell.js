@@ -8,16 +8,20 @@ const HAS_CHECKSUM = /\bsha(256|512)sum\b/;
 // The ShellCheck of Debian Bookworm, as in the build container: the baseline is recorded with it.
 export const SHELLCHECK_VERSION = '0.9.0';
 
-// ponytail: line heuristics, not a shell parser; parse with shfmt's parser if evasions show up.
-const COMMENT = /(^|\s)#.*$/;
-// Quoted text with no expansion in it: echo and printf only print it.
-const QUOTED = /'[^']*'|"(?:[^"\\$]|\\.)*"/g;
+// ponytail: line heuristics, not a shell parser; parse with shfmt's parser if evasions keep showing up.
+// The line before its comment: a # that starts a word, outside quotes.
+const CODE = /^(?:'[^']*'|"(?:[^"\\]|\\.)*"|\\.|[^'"\\#]|(?<=\S)#|['"\\])*/;
+// The commands on a line and the separators between them, quotes kept whole.
+const PIECES = /(?:'[^']*'|"(?:[^"\\]|\\.)*"|\\.|[^;&|'"\\]|['"\\])+|[;&|]+/g;
+// Quoted text with no expansion or command substitution in it: echo and printf only print it.
+const QUOTED = /'[^']*'|"(?:[^"\\$`]|\\.)*"/g;
 const PRINTS = /^\s*(sudo\s+)?(echo|printf|logger)\b/;
 const RUNS_TEXT = /\|\s*(sudo\s+)?(ba|da|z)?sh\b|\beval\b/;
-/** The code on a line: no comment, and no text that is only printed. */
+/** The code on a line: no comment, and no text that a print command only prints. */
 const codeOf = (line) => {
-  const code = line.replace(COMMENT, '');
-  return PRINTS.test(code) && !RUNS_TEXT.test(code) ? code.replace(QUOTED, "''") : code;
+  const code = line.match(CODE)[0];
+  if (RUNS_TEXT.test(code)) return code;
+  return (code.match(PIECES) ?? []).map((piece) => (PRINTS.test(piece) ? piece.replace(QUOTED, "''") : piece)).join('');
 };
 
 const LINE_RULES = [
@@ -47,7 +51,7 @@ export function shellFindings(script, file) {
     ? [{ rule: 'G2.shell.set-e', severity: 'error', file, line: 1, message: 'install.sh does not stop on the first error', fix: 'Add set -e (better: set -euo pipefail) at the top' }]
     : [];
   const perLine = lines.flatMap((text, i) =>
-    rules.filter((r) => r.test.test(r.raw ? text.replace(COMMENT, '') : code[i])).map((r) => finding(r, i + 1)));
+    rules.filter((r) => r.test.test(r.raw ? text.match(CODE)[0] : code[i])).map((r) => finding(r, i + 1)));
   return [...missingSetE, ...perLine];
 }
 
@@ -55,7 +59,7 @@ export function shellFindings(script, file) {
 export const shellcheckVersion = () => spawnSync('shellcheck', ['--version'], { encoding: 'utf8' }).stdout?.match(/version:\s*(\S+)/)?.[1];
 
 // Line numbers are kept: each directive becomes an empty comment.
-const DIRECTIVE = /^(\s*)#\s*shellcheck\s.*$/gm;
+const DIRECTIVE = /^([ \t]*)#[ \t]*shellcheck\b.*$/gm;
 
 // ShellCheck is optional on a laptop and required in CI, which installs it. The plugin cannot
 // switch checks off: no .shellcheckrc (--norc), no '# shellcheck disable=' directives.

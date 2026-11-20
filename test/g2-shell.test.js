@@ -57,3 +57,12 @@ test('text an echo prints is not a command; a string a shell runs is', () => {
 test('a trailing comment is not code', () => {
   assert.deepEqual(rules(safe('rm x # || true')), []);
 });
+
+test('a # inside quotes does not start a comment', () => {
+  assert.deepEqual(rules(safe("echo ' #'; apt-get install foo\necho \"a # b\" && rm x || true")), ['G2.shell.package-manager:3', 'G2.shell.or-true:4']);
+});
+
+test('only the arguments of the print command are text', () => {
+  assert.deepEqual(rules(safe("echo ready; bash -c 'apt-get install foo'\necho \"`apt-get install foo`\"")), ['G2.shell.package-manager:3', 'G2.shell.package-manager:4']);
+  assert.deepEqual(rules(safe("echo 'apt-get install foo' && echo done")), []);
+});

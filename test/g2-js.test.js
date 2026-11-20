@@ -69,3 +69,7 @@ test('a parameter that shadows the imported exec is not child_process', () => {
 test('a call written before the require is still caught', () => {
   assert.deepEqual(rules("function start() { cp.execSync('ls'); }\nconst cp = require('child_process');\nmodule.exports = start;"), ['G2.js.sync-exec:1']);
 });
+
+test('a name declared twice resolves through every declaration', () => {
+  assert.deepEqual(rules("var cp;\nvar cp = require('child_process');\ncp.execSync('ls');"), ['G2.js.sync-exec:3']);
+});

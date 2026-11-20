@@ -40,14 +40,13 @@ export const rule = {
       }
       return undefined;
     };
-    // What a name is bound to: the child_process module ({ module }), one of its functions ({ fn }), or neither.
-    const bindingOf = (identifier) => {
-      const def = variableOf(identifier)?.defs[0];
-      if (def?.type === 'ImportBinding') {
+    // What one declaration binds a name to: the child_process module ({ module }), one of its functions ({ fn }), or neither.
+    const bindingOfDef = (def, identifier) => {
+      if (def.type === 'ImportBinding') {
         if (!CHILD_PROCESS.has(def.parent.source.value)) return undefined;
         return def.node.type === 'ImportSpecifier' ? { fn: keyName(def.node.imported) } : { module: true };
       }
-      if (def?.type !== 'Variable') return undefined;
+      if (def.type !== 'Variable') return undefined;
       const { id, init } = def.node;
       if (isRequireOfChildProcess(init)) {
         if (id.type === 'Identifier') return { module: true };
@@ -58,6 +57,9 @@ export const rule = {
       if (init?.type === 'MemberExpression' && isRequireOfChildProcess(init.object) && id.type === 'Identifier') return { fn: keyOf(init) };
       return undefined;
     };
+    // A name declared more than once (var) has one definition per declaration.
+    const bindingOf = (identifier) =>
+      (variableOf(identifier)?.defs ?? []).map((def) => bindingOfDef(def, identifier)).find(Boolean);
     const childProcessFunction = (callee) => {
       if (callee.type === 'Identifier') return bindingOf(callee)?.fn;
       if (callee.type !== 'MemberExpression') return undefined;
