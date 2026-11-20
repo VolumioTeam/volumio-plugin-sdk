@@ -3,7 +3,6 @@ import { spawnSync } from 'node:child_process';
 import { join } from 'node:path';
 
 const SET_E = /^\s*set\s+(-[a-zA-Z]*e|-o\s+errexit)/m;
-const SHEBANG_E = /^#!.*\s-[a-zA-Z]*e\b/;
 const HAS_CHECKSUM = /\bsha(256|512)sum\b/;
 // The ShellCheck of Debian Bookworm, as in the build container: the baseline is recorded with it.
 export const SHELLCHECK_VERSION = '0.9.0';
@@ -24,7 +23,9 @@ const codeOf = (line) => {
   return (code.match(PIECES) ?? []).map((piece) => (PRINTS.test(piece) ? piece.replace(QUOTED, "''") : piece)).join('');
 };
 
+// Volumio runs install.sh with sh, dash on Debian: the shebang is ignored.
 const LINE_RULES = [
+  { rule: 'G2.shell.pipefail', test: /\bpipefail\b/, message: 'pipefail stops install.sh: Volumio runs it with sh (dash), which has no pipefail', fix: 'Use set -eu' },
   { rule: 'G2.shell.or-true', test: /\|\|\s*(true|:)\s*($|[;&|)])/, message: '|| true hides a failure', fix: 'Let the command fail, or handle the failure explicitly' },
   {
     rule: 'G2.shell.package-manager',
@@ -47,8 +48,8 @@ export function shellFindings(script, file) {
   const code = lines.map(codeOf);
   const rules = code.some((c) => HAS_CHECKSUM.test(c)) ? LINE_RULES : [...LINE_RULES, DOWNLOAD];
   const finding = (r, line) => ({ rule: r.rule, severity: 'error', file, line, message: r.message, fix: r.fix });
-  const missingSetE = !SET_E.test(script) && !SHEBANG_E.test(lines[0])
-    ? [{ rule: 'G2.shell.set-e', severity: 'error', file, line: 1, message: 'install.sh does not stop on the first error', fix: 'Add set -e (better: set -euo pipefail) at the top' }]
+  const missingSetE = !SET_E.test(script)
+    ? [{ rule: 'G2.shell.set-e', severity: 'error', file, line: 1, message: 'install.sh does not stop on the first error', fix: 'Add set -eu at the top. A -e on the shebang line does not count: Volumio runs install.sh with sh' }]
     : [];
   const perLine = lines.flatMap((text, i) =>
     rules.filter((r) => r.test.test(r.raw ? text.match(CODE)[0] : code[i])).map((r) => finding(r, i + 1)));
@@ -62,9 +63,10 @@ export const shellcheckVersion = () => spawnSync('shellcheck', ['--version'], { 
 const DIRECTIVE = /^([ \t]*)#[ \t]*shellcheck\b.*$/gm;
 
 // ShellCheck is optional on a laptop and required in CI, which installs it. The plugin cannot
-// switch checks off: no .shellcheckrc (--norc), no '# shellcheck disable=' directives.
+// switch checks off: no .shellcheckrc (--norc), no '# shellcheck disable=' directives. Checked as
+// dash, the shell Volumio runs install.sh with, whatever the shebang says.
 const shellcheck = (script, file) => {
-  const run = spawnSync('shellcheck', ['--norc', '-f', 'json1', '-S', 'warning', '-'], { input: script.replace(DIRECTIVE, '$1#'), encoding: 'utf8' });
+  const run = spawnSync('shellcheck', ['--norc', '--shell=dash', '-f', 'json1', '-S', 'warning', '-'], { input: script.replace(DIRECTIVE, '$1#'), encoding: 'utf8' });
   if (run.error || !run.stdout) return [];
   return JSON.parse(run.stdout).comments.map((c) => ({
     rule: `G2.shellcheck.SC${c.code}`,

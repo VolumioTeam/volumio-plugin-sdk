@@ -12,14 +12,20 @@ const hasShellcheck = !spawnSync('shellcheck', ['--version']).error;
 test('a plugin cannot switch ShellCheck off', { skip: !hasShellcheck && 'shellcheck not installed' }, () => {
   const dir = mkdtempSync(join(tmpdir(), 'g2sc-'));
   writeFileSync(join(dir, '.shellcheckrc'), 'disable=all\n');
-  writeFileSync(join(dir, 'install.sh'), '#!/bin/bash\n# shellcheck disable=all\nset -euo pipefail\nunused=1\n');
+  writeFileSync(join(dir, 'install.sh'), '#!/bin/sh\n# shellcheck disable=all\nset -eu\nunused=1\n');
   assert.deepEqual(shellDir(dir).map((f) => `${f.rule}:${f.line}`), ['G2.shellcheck.SC2034:4']);
 });
 
 test('a bare shellcheck comment does not hide the next line', { skip: !hasShellcheck && 'shellcheck not installed' }, () => {
   const dir = mkdtempSync(join(tmpdir(), 'g2sc-'));
-  writeFileSync(join(dir, 'install.sh'), '#!/bin/bash\nset -euo pipefail\n# shellcheck\nunused=1\n');
+  writeFileSync(join(dir, 'install.sh'), '#!/bin/sh\nset -eu\n# shellcheck\nunused=1\n');
   assert.deepEqual(shellDir(dir).map((f) => `${f.rule}:${f.line}`), ['G2.shellcheck.SC2034:4']);
+});
+
+test('ShellCheck reads install.sh as dash, whatever the shebang says', { skip: !hasShellcheck && 'shellcheck not installed' }, () => {
+  const dir = mkdtempSync(join(tmpdir(), 'g2sc-'));
+  writeFileSync(join(dir, 'install.sh'), '#!/bin/bash\nset -eu\nif [[ -f x ]]; then echo hi; fi\n');
+  assert.deepEqual(shellDir(dir).map((f) => `${f.rule}:${f.line}`), ['G2.shellcheck.SC3010:3']);
 });
 
 test('the baseline is not rewritten without the pinned ShellCheck', () => {

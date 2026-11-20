@@ -33,8 +33,8 @@ npx volumio-plugin check [plugin-dir ...] [--built] [--json]
 | `G2.js.process-exit`, `G2.js.global-handler` | No `process.exit` and no process-wide `uncaughtException`/`unhandledRejection` handlers, except in executables (shebang) |
 | `G2.js.command-router-override` | No replacing `commandRouter` methods |
 | `G2.js.console-log` | No `console.log` |
-| `G2.shell.*` | `set -e`; no `\|\| true`; no package managers; no download without a `sha256sum` check; no sudoers |
-| `G2.shellcheck.SC*` | ShellCheck warnings and errors, when `shellcheck` is installed (CI always has it) |
+| `G2.shell.*` | `set -e` in the script; no `pipefail`; no `\|\| true`; no package managers; no download without a `sha256sum` check; no sudoers. Volumio runs `install.sh` with `sh` (dash): the shebang is ignored, so a `-e` there does not count, and dash has no `pipefail` |
+| `G2.shellcheck.SC*` | ShellCheck warnings and errors, checked as dash, when `shellcheck` is installed (CI always has it) |
 | `G2.secret` | No private key or service token (AWS, GitHub, Slack, Google API, Stripe) in the plugin's files; the finding names the kind, never the secret |
 | `G2.secret.*` | gitleaks' default rules on the lines the built-in patterns did not flag, when `gitleaks` is installed (CI always has it). The plugin's `.gitleaks.toml`, `.gitleaksignore` and `gitleaks:allow` comments are ignored |
 | `G2.audit` (`package`) | No high or critical `npm audit` advisory on the production dependencies; a warning for v1, and a warning when the audit cannot run |
