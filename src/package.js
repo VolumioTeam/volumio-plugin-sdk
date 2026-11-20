@@ -126,7 +126,9 @@ export function packagePlugin(src, { out, arch = archOf(process.arch), epoch, me
   // The gates run on the tree that ships: the build can write files.
   const installed = installDependencies(stage, pkg, load(stage).source);
   const gates = check(stage, { built: true, functions, baseline });
-  const dependencies = hasProdDeps(pkg) ? [...runAudit(stage, gates.source), ...licenceFindings(stage, gates.source)] : [];
+  // The build can add dependencies: decide on the manifest that ships.
+  const shipped = existsSync(pkgFile) ? JSON.parse(readFileSync(pkgFile, 'utf8')) : {};
+  const dependencies = hasProdDeps(shipped) ? [...runAudit(stage, gates.source), ...licenceFindings(stage, gates.source)] : [];
   const findings = [...gates.findings, ...installed, ...dependencies, ...nativeFindings(stage, arch)]
     .filter((f) => f.severity !== 'todo');
 

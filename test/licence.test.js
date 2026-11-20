@@ -14,6 +14,8 @@ test('licences are permissive, copyleft, missing or unknown', () => {
 
 test('an OR expression takes the best choice, AND the worst', () => {
   assert.equal(classify('(MIT OR GPL-3.0)'), 'permissive');
+  assert.equal(classify('(MIT OR Apache-2.0) AND GPL-3.0-only'), 'copyleft');
+  assert.equal(classify('MIT OR Apache-2.0 AND GPL-3.0-only'), 'permissive');
   assert.equal(classify('MIT AND GPL-3.0'), 'copyleft');
   assert.equal(classify('GPL-2.0 WITH Classpath-exception-2.0'), 'copyleft');
   assert.equal(classify({ type: 'MIT' }), 'permissive');

@@ -17,8 +17,31 @@ const worst = (classes) => classes.toSorted((a, b) => RANK[b] - RANK[a])[0];
 export function classify(licence) {
   const text = typeof licence === 'object' && licence ? licence.type : licence;
   if (!text || text === 'UNLICENSED' || /^SEE LICEN[CS]E IN/i.test(text)) return 'missing';
-  return best(text.replace(/[()]/g, ' ').split(/\s+OR\s+/).map((choice) =>
-    worst(choice.split(/\s+AND\s+/).map((part) => ofId(part.split(/\s+WITH\s+/)[0].trim())))));
+  const tokens = text.match(/[()]|[^\s()]+/g) ?? [];
+  let at = 0;
+  // SPDX precedence: parentheses, then WITH, then AND, then OR.
+  const term = () => {
+    if (tokens[at] === '(') {
+      at += 1;
+      const inner = anyOf();
+      at += 1;
+      return inner;
+    }
+    const id = tokens[at++];
+    if (tokens[at] === 'WITH') at += 2;
+    return ofId(id);
+  };
+  const allOf = () => {
+    const parts = [term()];
+    while (tokens[at] === 'AND') { at += 1; parts.push(term()); }
+    return worst(parts);
+  };
+  const anyOf = () => {
+    const choices = [allOf()];
+    while (tokens[at] === 'OR') { at += 1; choices.push(allOf()); }
+    return best(choices);
+  };
+  return anyOf();
 }
 
 // Every installed package folder, scoped and nested ones included.
