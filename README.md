@@ -35,8 +35,12 @@ npx volumio-plugin check [plugin-dir ...] [--built] [--json]
 | `G2.js.console-log` | No `console.log` |
 | `G2.shell.*` | `set -e` in the script; no `pipefail`; no `\|\| true`; no package managers; no download without a `sha256sum` check; no sudoers. Volumio runs `install.sh` with `sh` (dash): the shebang is ignored, so a `-e` there does not count, and dash has no `pipefail` |
 | `G2.shellcheck.SC*` | ShellCheck warnings and errors, checked as dash, when `shellcheck` is installed (CI always has it) |
+| `G2.secret` | No private key or service token (AWS, GitHub, Slack, Google API, Stripe) in the plugin's files; the finding names the kind, never the secret |
+| `G2.secret.*` | gitleaks' default rules on the lines the built-in patterns did not flag, when `gitleaks` is installed (CI always has it). The plugin's `.gitleaks.toml`, `.gitleaksignore` and `gitleaks:allow` comments are ignored |
+| `G2.audit` (`package`) | No high or critical `npm audit` advisory on the production dependencies; a warning for v1, and a warning when the audit cannot run |
+| `G2.licence` (`package`) | Every production dependency has a licence: none, `UNLICENSED` or `SEE LICENSE IN` is an error (a warning for v1); copyleft (GPL, LGPL, AGPL) and unrecognised licences are warnings |
 
-Inline `eslint-disable` comments, `# shellcheck` directives and `.shellcheckrc` are ignored: a plugin cannot switch a check off. `registry/g2-baseline.json` holds the violations each published plugin has today: they show as one warning per rule and file, and any new one blocks. A v1 plugin with no baseline gets warnings; a v2 plugin gets errors. Regenerate it with `node scripts/g2-baseline.js <plugins-dir>`, using the ShellCheck version CI pins.
+Inline `eslint-disable` comments, `# shellcheck` directives and `.shellcheckrc` are ignored: a plugin cannot switch a check off. `registry/g2-baseline.json` holds the violations each published plugin has today: they show as one warning per rule and file, and any new one blocks. A v1 plugin with no baseline gets warnings; a v2 plugin gets errors. Regenerate it with `node scripts/g2-baseline.js <plugins-dir>`, in the build container, which has the ShellCheck and gitleaks versions CI pins (`scripts/install-tools.sh`).
 
 ## Build
 
@@ -45,12 +49,12 @@ A plugin repository builds its release with the reusable workflow:
 ```yaml
 jobs:
   build:
-    uses: VolumioTeam/volumio-plugin-sdk/.github/workflows/build.yml@main
+    uses: VolumioTeam/volumio-plugin-sdk/.github/workflows/build.yml@v0.2.0
     with:
       path: .   # plugin folder inside the repository
 ```
 
-It runs one build per architecture the manifest declares (`volumio-plugin arch`), each through `scripts/build.sh`, in the Volumio build container: Debian Bookworm, Node 20, ShellCheck from Bookworm, under QEMU for ARM. Run the same build locally with Docker:
+It runs one build per architecture the manifest declares (`volumio-plugin arch`), each through `scripts/build.sh`, in the Volumio build container: Debian Bookworm, Node 20, ShellCheck from Bookworm, gitleaks pinned by version and sha256, under QEMU for ARM. Run the same build locally with Docker:
 
 ```bash
 scripts/build.sh <plugin-dir> <armhf|amd64|arm64> [out-dir]
@@ -75,6 +79,10 @@ The store signs each release it accepts: `<zip>.sig` is a [DSSE](https://github.
 volumio-plugin sign <zip> --key <private.pem> --key-id <id>       # development key; the store signs with its KMS key
 volumio-plugin verify <zip> --key <id>=<public.pem> [--key ...]
 ```
+
+## Releasing
+
+Bump `version` in `package.json` and the `sdk-ref` default in `.github/workflows/build.yml` together (a test fails otherwise), merge, then tag `v<version>` on `main`. Release tags cannot be moved or deleted. Plugin repositories call the workflow at a tag, never at `main`; actions are pinned by commit and the build image by digest.
 
 ```bash
 npm test

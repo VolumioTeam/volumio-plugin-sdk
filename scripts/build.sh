@@ -11,6 +11,8 @@ plugin=$(cd "$1" && pwd)
 arch=$2
 out=${3:-dist-plugin}
 sdk=$(cd "$(dirname "$0")/.." && pwd)
+# Debian Bookworm, Node 20, pinned by digest: bump it on purpose, never by accident.
+IMAGE=node:20-bookworm@sha256:8f693eaa7e0a8e71560c9a82b55fd54c2ae920a2ba5d2cde28bac7d1c01c9ba5
 
 case $arch in
   armhf) platform=linux/arm/v7 ;;
@@ -28,8 +30,8 @@ docker run --rm --platform "$platform" \
   -v "$sdk:/sdk:ro" -v "$plugin:/plugin:ro" -v "$(cd "$out" && pwd):/out" \
   -e SOURCE_DATE_EPOCH \
   -e GITHUB_REPOSITORY -e GITHUB_SHA -e GITHUB_REF -e GITHUB_RUN_ID -e GITHUB_RUN_ATTEMPT -e GITHUB_WORKFLOW_REF \
-  node:20-bookworm bash -euo pipefail -c '
-    apt-get update -qq && apt-get install -y -qq zip shellcheck > /dev/null
+  "$IMAGE" bash -euo pipefail -c '
+    bash /sdk/scripts/install-tools.sh
     mkdir /tmp/sdk && tar -C /sdk --exclude=node_modules --exclude=.git -cf - . | tar -C /tmp/sdk -xf -
     npm ci --prefix /tmp/sdk --omit=dev --no-audit --no-fund > /dev/null
     node /tmp/sdk/bin/volumio-plugin.js package /plugin --out /out'
