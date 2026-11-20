@@ -63,6 +63,7 @@ const gitleaksFindings = (dir) => {
       '--report-format', 'json', '--report-path', report], { cwd: work, encoding: 'utf8' });
     if (run.error?.code === 'ENOENT') return [];
     if (run.error || run.status !== 0) throw new Error(`gitleaks failed: ${run.error?.message ?? run.stderr}`);
+    // gitleaks scans files in parallel: sorted, so the baseline is the same on every run.
     return JSON.parse(readFileSync(report, 'utf8')).map((leak) => ({
       rule: `G2.secret.${leak.RuleID}`,
       severity: 'error',
@@ -70,7 +71,7 @@ const gitleaksFindings = (dir) => {
       line: leak.StartLine,
       message: `${leak.RuleID} (gitleaks) in the package`,
       fix: FIX,
-    }));
+    })).toSorted((a, b) => a.file.localeCompare(b.file) || a.line - b.line);
   } finally {
     rmSync(work, { recursive: true, force: true });
   }

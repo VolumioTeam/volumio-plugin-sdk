@@ -128,8 +128,8 @@
     "G2.shell.set-e|install.sh": 1,
     "G2.secret.generic-api-key|dist/lib/consts/radiko-urls.d.ts": 1,
     "G2.secret.generic-api-key|dist/lib/consts/radiko-urls.js": 1,
-    "G2.secret.generic-api-key|src/lib/consts/radiko-urls.ts": 1,
-    "G2.secret.generic-api-key|dist/lib/consts/radiko-urls.js.map": 1
+    "G2.secret.generic-api-key|dist/lib/consts/radiko-urls.js.map": 1,
+    "G2.secret.generic-api-key|src/lib/consts/radiko-urls.ts": 1
   },
   "just_oled": {
     "G2.js.shell|index.js": 2,
