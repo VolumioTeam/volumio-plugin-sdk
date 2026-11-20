@@ -45,7 +45,7 @@ A plugin repository builds its release with the reusable workflow:
 ```yaml
 jobs:
   build:
-    uses: VolumioTeam/volumio-plugin-sdk/.github/workflows/build.yml@main
+    uses: VolumioTeam/volumio-plugin-sdk/.github/workflows/build.yml@v0.2.0
     with:
       path: .   # plugin folder inside the repository
 ```
@@ -75,6 +75,10 @@ The store signs each release it accepts: `<zip>.sig` is a [DSSE](https://github.
 volumio-plugin sign <zip> --key <private.pem> --key-id <id>       # development key; the store signs with its KMS key
 volumio-plugin verify <zip> --key <id>=<public.pem> [--key ...]
 ```
+
+## Releasing
+
+Bump `version` in `package.json` and the `sdk-ref` default in `.github/workflows/build.yml` together (a test fails otherwise), merge, then tag `v<version>` on `main`. Release tags cannot be moved or deleted. Plugin repositories call the workflow at a tag, never at `main`; actions are pinned by commit and the build image by digest.
 
 ```bash
 npm test
