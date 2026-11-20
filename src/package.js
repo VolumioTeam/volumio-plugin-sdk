@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
 import { check, load } from './check.js';
 import { runAudit } from './audit.js';
+import { licenceFindings } from './licence.js';
 
 const ARCH = { arm: 'armhf', x64: 'amd64', arm64: 'arm64' };
 const ELF_MACHINE = { 40: 'armhf', 62: 'amd64', 183: 'arm64' };
@@ -72,9 +73,11 @@ const run = (cmd, args, cwd) => {
   if (result.error || result.status !== 0) throw new Error(`${cmd} ${args.join(' ')} failed in ${cwd}`);
 };
 
+const hasProdDeps = (pkg) => Object.keys({ ...pkg.dependencies, ...pkg.optionalDependencies }).length > 0;
+
 /** Installs the production dependencies inside the package, building the plugin first if it has a build script. */
 const installDependencies = (stage, pkg, source) => {
-  const hasDeps = Object.keys(pkg.dependencies ?? {}).length > 0;
+  const hasDeps = hasProdDeps(pkg);
   const build = pkg.scripts?.build;
   if (!hasDeps && !build) return [];
   const locked = existsSync(join(stage, 'package-lock.json'));
@@ -120,10 +123,11 @@ export function packagePlugin(src, { out, arch = archOf(process.arch), epoch, me
   const pkgFile = join(stage, 'package.json');
   const pkg = existsSync(pkgFile) ? JSON.parse(readFileSync(pkgFile, 'utf8')) : {};
 
+  // The gates run on the tree that ships: the build can write files.
+  const installed = installDependencies(stage, pkg, load(stage).source);
   const gates = check(stage, { built: true, functions, baseline });
-  const installed = installDependencies(stage, pkg, gates.source);
-  const audit = Object.keys(pkg.dependencies ?? {}).length ? runAudit(stage, gates.source) : [];
-  const findings = [...gates.findings, ...installed, ...audit, ...nativeFindings(stage, arch)]
+  const dependencies = hasProdDeps(pkg) ? [...runAudit(stage, gates.source), ...licenceFindings(stage, gates.source)] : [];
+  const findings = [...gates.findings, ...installed, ...dependencies, ...nativeFindings(stage, arch)]
     .filter((f) => f.severity !== 'todo');
 
   const name = `${gates.id}-${gates.version}-${arch}`;

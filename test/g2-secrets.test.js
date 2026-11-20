@@ -51,3 +51,9 @@ test('dependencies, git data and binary files are not scanned', () => {
 test('ordinary code is clean', () => {
   assert.deepEqual(secretFindings(tree({ 'index.js': "const key = 'public-id';\n// BEGIN PUBLIC KEY is fine\n" })), []);
 });
+
+test('a file with a NUL byte anywhere is binary, not only in its first 8000 bytes', () => {
+  const key = fake('AKIA', 16);
+  const dir = tree({ 'firmware.bin': Buffer.concat([Buffer.from('a'.repeat(9000)), Buffer.from([0]), Buffer.from(key)]) });
+  assert.deepEqual(secretFindings(dir), []);
+});

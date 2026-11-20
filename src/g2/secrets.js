@@ -1,4 +1,4 @@
-import { closeSync, openSync, readFileSync, readSync, readdirSync, statSync } from 'node:fs';
+import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
 // Credentials with a recognisable shape. Anything shipped in a plugin is public, whatever the repository's visibility.
@@ -23,28 +23,20 @@ const files = (root, rel = '') =>
       return e.isFile() ? [path] : [];
     });
 
-const isBinary = (path) => {
-  const fd = openSync(path, 'r');
-  try {
-    const head = Buffer.alloc(8000);
-    return head.subarray(0, readSync(fd, head, 0, head.length, 0)).includes(0);
-  } finally {
-    closeSync(fd);
-  }
-};
-
 /** G2: credentials in the plugin's own files. The finding names the kind of secret, never the secret. */
 export function secretFindings(dir) {
-  return files(dir)
-    .filter((file) => statSync(join(dir, file)).size <= MAX_BYTES && !isBinary(join(dir, file)))
-    .flatMap((file) =>
-      readFileSync(join(dir, file), 'utf8').split('\n').flatMap((text, i) =>
-        PATTERNS.filter((p) => p.test.test(text)).map((p) => ({
-          rule: 'G2.secret',
-          severity: 'error',
-          file,
-          line: i + 1,
-          message: `${p.name} in the package`,
-          fix: 'Remove it and revoke it: it is already public. Read secrets from the plugin settings or the device at runtime',
-        }))));
+  return files(dir).flatMap((file) => {
+    if (statSync(join(dir, file)).size > MAX_BYTES) return [];
+    const bytes = readFileSync(join(dir, file));
+    if (bytes.includes(0)) return [];
+    return bytes.toString('utf8').split('\n').flatMap((text, i) =>
+      PATTERNS.filter((p) => p.test.test(text)).map((p) => ({
+        rule: 'G2.secret',
+        severity: 'error',
+        file,
+        line: i + 1,
+        message: `${p.name} in the package`,
+        fix: 'Remove it and revoke it: it is already public. Read secrets from the plugin settings or the device at runtime',
+      })));
+  });
 }

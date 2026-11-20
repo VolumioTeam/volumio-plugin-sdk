@@ -37,6 +37,7 @@ npx volumio-plugin check [plugin-dir ...] [--built] [--json]
 | `G2.shellcheck.SC*` | ShellCheck warnings and errors, when `shellcheck` is installed (CI always has it) |
 | `G2.secret` | No private key or service token (AWS, GitHub, Slack, Google API, Stripe) in the plugin's files; the finding names the kind, never the secret |
 | `G2.audit` (`package`) | No high or critical `npm audit` advisory on the production dependencies; a warning for v1, and a warning when the audit cannot run |
+| `G2.licence` (`package`) | Every production dependency has a licence: none, `UNLICENSED` or `SEE LICENSE IN` is an error (a warning for v1); copyleft (GPL, LGPL, AGPL) and unrecognised licences are warnings |
 
 Inline `eslint-disable` comments are ignored. `registry/g2-baseline.json` holds the violations each published plugin has today: they show as one warning per rule and file, and any new one blocks. A v1 plugin with no baseline gets warnings; a v2 plugin gets errors. Regenerate it with `node scripts/g2-baseline.js <plugins-dir>`, using the ShellCheck version CI pins.
 
