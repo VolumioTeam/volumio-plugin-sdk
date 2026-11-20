@@ -31,7 +31,7 @@ docker run --rm --platform "$platform" \
   -e SOURCE_DATE_EPOCH \
   -e GITHUB_REPOSITORY -e GITHUB_SHA -e GITHUB_REF -e GITHUB_RUN_ID -e GITHUB_RUN_ATTEMPT -e GITHUB_WORKFLOW_REF \
   "$IMAGE" bash -euo pipefail -c '
-    apt-get update -qq && apt-get install -y -qq zip shellcheck > /dev/null
+    bash /sdk/scripts/install-tools.sh
     mkdir /tmp/sdk && tar -C /sdk --exclude=node_modules --exclude=.git -cf - . | tar -C /tmp/sdk -xf -
     npm ci --prefix /tmp/sdk --omit=dev --no-audit --no-fund > /dev/null
     node /tmp/sdk/bin/volumio-plugin.js package /plugin --out /out'

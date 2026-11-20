@@ -1,0 +1,4 @@
+# The gitleaks config G2 runs with: the default rules. Passed with --config, so a plugin's own
+# .gitleaks.toml is never read.
+[extend]
+useDefault = true
