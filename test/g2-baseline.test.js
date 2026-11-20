@@ -25,3 +25,13 @@ test('without a baseline, v1 plugins get warnings and v2 plugins errors', () => 
   assert.deepEqual(brief(applyBaseline(log3.slice(0, 1), undefined, 'v1')), ['warning G2.js.console-log:1']);
   assert.deepEqual(brief(applyBaseline(log3.slice(0, 1), undefined, 'v2')), ['error G2.js.console-log:1']);
 });
+
+test('a plugin whose id is an Object property name has no baseline', async () => {
+  const { mkdtempSync, writeFileSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+  const { g2 } = await import('../src/g2/index.js');
+  const dir = mkdtempSync(join(tmpdir(), 'g2b-'));
+  writeFileSync(join(dir, 'index.js'), "console.log('x');");
+  assert.deepEqual(brief(g2(dir, { id: 'constructor', source: 'v1' }, {})), ['warning G2.js.console-log:1']);
+});

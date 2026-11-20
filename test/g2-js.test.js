@@ -56,3 +56,16 @@ test('an executable script (shebang) runs as its own process: exit and handlers 
   const code = "#!/usr/bin/env node\nprocess.on('uncaughtException', () => {});\nprocess.exit(2);\nconsole.log('x');";
   assert.deepEqual(rules(code, 'relay/relay.js'), ['G2.js.console-log:4']);
 });
+
+test('a shell path runs a shell too; shell: false and an empty path do not', () => {
+  const code = "const { spawn, execFile } = require('child_process');\nspawn('echo hi', [], { shell: '/bin/bash' });\nspawn('ls', [], { shell: false });\nexecFile('ls', [], { shell: '' });";
+  assert.deepEqual(rules(code), ['G2.js.shell:2']);
+});
+
+test('a parameter that shadows the imported exec is not child_process', () => {
+  assert.deepEqual(rules("const { exec } = require('child_process');\nfunction run(exec) { exec('x'); }"), []);
+});
+
+test('a call written before the require is still caught', () => {
+  assert.deepEqual(rules("function start() { cp.execSync('ls'); }\nconst cp = require('child_process');\nmodule.exports = start;"), ['G2.js.sync-exec:1']);
+});
