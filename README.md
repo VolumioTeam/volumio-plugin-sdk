@@ -18,6 +18,10 @@ npx volumio-plugin check [plugin-dir ...] [--built] [--json]
 | `G1.main` (`--built`) | `package.json` `main` is `index.js`, as the crypter needs |
 | `G1.file.i18n` (`--built`) | `i18n/strings_en.json` exists |
 
+## Function registry
+
+`registry/functions.json` lists one entry per function: `id`, `title`, the one `plugin` kept, and the `duplicates` that move to Deprecated. `plugin: null` means Volumio has not picked one yet.
+
 ## G2: static checks
 
 `check` also runs G2 on every JavaScript file (tests and `node_modules` excluded) and on `install.sh`.
