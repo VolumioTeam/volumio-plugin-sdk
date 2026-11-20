@@ -33,10 +33,10 @@ npx volumio-plugin check [plugin-dir ...] [--built] [--json]
 | `G2.js.process-exit`, `G2.js.global-handler` | No `process.exit` and no process-wide `uncaughtException`/`unhandledRejection` handlers, except in executables (shebang) |
 | `G2.js.command-router-override` | No replacing `commandRouter` methods |
 | `G2.js.console-log` | No `console.log` |
-| `G2.shell.*` | `set -e`; no `|| true`; no package managers; no download without a `sha256sum` check; no sudoers |
+| `G2.shell.*` | `set -e`; no `\|\| true`; no package managers; no download without a `sha256sum` check; no sudoers |
 | `G2.shellcheck.SC*` | ShellCheck warnings and errors, when `shellcheck` is installed (CI always has it) |
 
-Inline `eslint-disable` comments are ignored. `registry/g2-baseline.json` holds the violations each published plugin has today: they show as one warning per rule and file, and any new one blocks. A v1 plugin with no baseline gets warnings; a v2 plugin gets errors. Regenerate it with `node scripts/g2-baseline.js <plugins-dir>`, using the ShellCheck version CI pins.
+Inline `eslint-disable` comments, `# shellcheck` directives and `.shellcheckrc` are ignored: a plugin cannot switch a check off. `registry/g2-baseline.json` holds the violations each published plugin has today: they show as one warning per rule and file, and any new one blocks. A v1 plugin with no baseline gets warnings; a v2 plugin gets errors. Regenerate it with `node scripts/g2-baseline.js <plugins-dir>`, using the ShellCheck version CI pins.
 
 ## Build
 
@@ -66,6 +66,15 @@ scripts/build.sh <plugin-dir> <armhf|amd64|arm64> [out-dir]
 | --- | --- |
 | `G3.native-arch` | Every `.node` module is built for the target architecture |
 | `G3.lockfile` | `package-lock.json` is committed; a warning for v1 plugins |
+
+## Signing
+
+The store signs each release it accepts: `<zip>.sig` is a [DSSE](https://github.com/secure-systems-lab/dsse) envelope whose payload (`volumio.plugin.release/v1`) binds the zip's sha256 to the plugin id, version, architecture and source commit, signed with Ed25519. The device trusts two keys, the active one and the next, so rotating the key needs no device update. `src/sign.js` (`@volumio/plugin-sdk/sign`) uses only Node's `crypto`; the device verifier follows it and is tested against envelopes it signs. Key ids use letters, digits, dot, dash and underscore.
+
+```bash
+volumio-plugin sign <zip> --key <private.pem> --key-id <id>       # development key; the store signs with its KMS key
+volumio-plugin verify <zip> --key <id>=<public.pem> [--key ...]
+```
 
 ## Releasing
 
