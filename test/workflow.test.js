@@ -12,11 +12,11 @@ test('the reusable workflow builds with the SDK of its own release', () => {
 
 // Every remote `uses:` value, quoted or not, that is not pinned to a commit; local ./ workflows are exempt.
 const unpinned = (yaml) =>
-  [...yaml.matchAll(/uses:\s*['"]?([^'"\s#]+)/g)].map(([, ref]) => ref).filter((ref) => !ref.startsWith('./') && !/@[0-9a-f]{40}$/.test(ref));
+  [...yaml.matchAll(/\buses['"]?\s*:\s*['"]?([^'"\s#]+)/g)].map(([, ref]) => ref).filter((ref) => !ref.startsWith('./') && !/@[0-9a-f]{40}$/.test(ref));
 
-test('the pin check sees quoted references', () => {
-  assert.deepEqual(unpinned("- uses: 'actions/checkout@v4'\n- uses: \"actions/setup-node@v4\"\n- uses: ./.github/workflows/build.yml"),
-    ['actions/checkout@v4', 'actions/setup-node@v4']);
+test('the pin check sees quoted references and keys', () => {
+  assert.deepEqual(unpinned("- uses: 'actions/checkout@v4'\n- uses: \"actions/setup-node@v4\"\n- uses : actions/cache@v4\n- 'uses': actions/upload-artifact@v4\n- uses: ./.github/workflows/build.yml"),
+    ['actions/checkout@v4', 'actions/setup-node@v4', 'actions/cache@v4', 'actions/upload-artifact@v4']);
 });
 
 test('actions are pinned by commit and the build image by digest', () => {
