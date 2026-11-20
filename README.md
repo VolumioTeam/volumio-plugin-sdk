@@ -33,8 +33,8 @@ npx volumio-plugin check [plugin-dir ...] [--built] [--json]
 | `G2.js.process-exit`, `G2.js.global-handler` | No `process.exit` and no process-wide `uncaughtException`/`unhandledRejection` handlers, except in executables (shebang) |
 | `G2.js.command-router-override` | No replacing `commandRouter` methods |
 | `G2.js.console-log` | No `console.log` |
-| `G2.shell.*` | `set -e`; no `\|\| true`; no package managers; no download without a `sha256sum` check; no sudoers |
-| `G2.shellcheck.SC*` | ShellCheck warnings and errors, when `shellcheck` is installed (CI always has it) |
+| `G2.shell.*` | `set -e` in the script; no `pipefail`; no `\|\| true`; no package managers; no download without a `sha256sum` check; no sudoers. Volumio runs `install.sh` with `sh` (dash): the shebang is ignored, so a `-e` there does not count, and dash has no `pipefail` |
+| `G2.shellcheck.SC*` | ShellCheck warnings and errors, checked as dash, when `shellcheck` is installed (CI always has it) |
 
 Inline `eslint-disable` comments, `# shellcheck` directives and `.shellcheckrc` are ignored: a plugin cannot switch a check off. `registry/g2-baseline.json` holds the violations each published plugin has today: they show as one warning per rule and file, and any new one blocks. A v1 plugin with no baseline gets warnings; a v2 plugin gets errors. Regenerate it with `node scripts/g2-baseline.js <plugins-dir>`, using the ShellCheck version CI pins.
 

@@ -74,7 +74,8 @@
     "G2.js.shell|index.js": 2,
     "G2.js.command-router-override|index.js": 2,
     "G2.shell.set-e|install.sh": 1,
-    "G2.shell.package-manager|install.sh": 1
+    "G2.shell.package-manager|install.sh": 1,
+    "G2.shellcheck.SC3020|install.sh": 1
   },
   "example_plugin": {
     "G2.shell.set-e|install.sh": 1,
@@ -122,6 +123,9 @@
   "jellyfin": {
     "G2.shell.set-e|install.sh": 1
   },
+  "jellyfin_server": {
+    "G2.shellcheck.SC3044|install.sh": 2
+  },
   "jp_radio": {
     "G2.shell.set-e|install.sh": 1
   },
@@ -143,8 +147,7 @@
     "G2.js.console-log|index.js": 2,
     "G2.js.console-log|lib/simple-lastfm/index.js": 8,
     "G2.js.console-log|pausableTimer.js": 6,
-    "G2.shell.set-e|install.sh": 1,
-    "G2.shellcheck.SC2148|install.sh": 1
+    "G2.shell.set-e|install.sh": 1
   },
   "lcd1602_vumeter": {
     "G2.js.shell|index.js": 2,
@@ -153,6 +156,9 @@
     "G2.shell.sudoers|install.sh": 1,
     "G2.shell.or-true|install.sh": 5,
     "G2.shell.package-manager|install.sh": 1
+  },
+  "lyrion": {
+    "G2.shellcheck.SC3044|install.sh": 2
   },
   "metaroon": {
     "G2.js.shell|index.js": 2,
@@ -224,7 +230,8 @@
   },
   "oled_display_ssd1309": {
     "G2.js.sync-exec|index.js": 1,
-    "G2.js.process-exit|index.js": 1
+    "G2.js.process-exit|index.js": 1,
+    "G2.shellcheck.SC3010|install.sh": 1
   },
   "outcast": {
     "G2.shell.set-e|install.sh": 1,
@@ -241,7 +248,8 @@
     "G2.js.sync-exec|index.js": 4,
     "G2.shell.set-e|install.sh": 1,
     "G2.shell.package-manager|install.sh": 2,
-    "G2.shellcheck.SC2242|install.sh": 1
+    "G2.shellcheck.SC2242|install.sh": 1,
+    "G2.shellcheck.SC3010|install.sh": 1
   },
   "peppyspectrum": {
     "G2.js.shell|index.js": 6,
@@ -249,7 +257,8 @@
     "G2.js.sync-exec|index.js": 4,
     "G2.shell.set-e|install.sh": 1,
     "G2.shell.package-manager|install.sh": 1,
-    "G2.shellcheck.SC2242|install.sh": 1
+    "G2.shellcheck.SC2242|install.sh": 1,
+    "G2.shellcheck.SC3010|install.sh": 1
   },
   "personal_radio": {
     "G2.shell.set-e|install.sh": 1
@@ -448,20 +457,20 @@
     "G2.js.console-log|scripts/buildUIConfigSchema.js": 2,
     "G2.shell.set-e|install.sh": 1,
     "G2.shell.package-manager|install.sh": 2,
-    "G2.shellcheck.SC2164|install.sh": 2,
-    "G2.shellcheck.SC3044|install.sh": 2
+    "G2.shellcheck.SC3044|install.sh": 2,
+    "G2.shellcheck.SC2164|install.sh": 2
   },
   "ytcr": {
     "G2.shell.set-e|install.sh": 1,
     "G2.shell.package-manager|install.sh": 1,
-    "G2.shellcheck.SC2164|install.sh": 2,
-    "G2.shellcheck.SC3044|install.sh": 2
+    "G2.shellcheck.SC3044|install.sh": 2,
+    "G2.shellcheck.SC2164|install.sh": 2
   },
   "ytmusic": {
     "G2.js.console-log|scripts/buildUIConfigSchema.js": 2,
     "G2.shell.set-e|install.sh": 1,
     "G2.shell.package-manager|install.sh": 4,
-    "G2.shellcheck.SC2164|install.sh": 2,
-    "G2.shellcheck.SC3044|install.sh": 2
+    "G2.shellcheck.SC3044|install.sh": 2,
+    "G2.shellcheck.SC2164|install.sh": 2
   }
 }

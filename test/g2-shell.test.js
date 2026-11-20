@@ -3,14 +3,19 @@ import assert from 'node:assert/strict';
 import { shellFindings } from '../src/g2/shell.js';
 
 const rules = (script) => shellFindings(script, 'install.sh').map((f) => `${f.rule}:${f.line}`);
-const safe = (body) => `#!/bin/bash\nset -euo pipefail\n${body}`;
+const safe = (body) => `#!/bin/sh\nset -eu\n${body}`;
 
 test('a script without set -e', () => {
   assert.deepEqual(rules('#!/bin/bash\necho hi'), ['G2.shell.set-e:1']);
 });
 
-test('set -e on the shebang line counts', () => {
-  assert.deepEqual(rules('#!/bin/bash -e\necho hi'), []);
+test('set -e on the shebang line does not count: Volumio runs install.sh with sh', () => {
+  assert.deepEqual(rules('#!/bin/bash -e\necho hi'), ['G2.shell.set-e:1']);
+});
+
+test('pipefail stops install.sh: dash has none', () => {
+  assert.deepEqual(rules('#!/bin/bash\nset -euo pipefail\necho hi'), ['G2.shell.pipefail:2']);
+  assert.deepEqual(rules(safe('set -o pipefail\necho "pipefail is a bash option"')), ['G2.shell.pipefail:3']);
 });
 
 test('|| true and || : hide failures', () => {
