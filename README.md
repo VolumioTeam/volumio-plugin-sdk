@@ -67,6 +67,15 @@ scripts/build.sh <plugin-dir> <armhf|amd64|arm64> [out-dir]
 | `G3.native-arch` | Every `.node` module is built for the target architecture |
 | `G3.lockfile` | `package-lock.json` is committed; a warning for v1 plugins |
 
+## Signing
+
+The store signs each release it accepts: `<zip>.sig` is a [DSSE](https://github.com/secure-systems-lab/dsse) envelope whose payload (`volumio.plugin.release/v1`) binds the zip's sha256 to the plugin id, version, architecture and source commit, signed with Ed25519. The device trusts two keys, the active one and the next, so rotating the key needs no device update. `src/sign.js` (`@volumio/plugin-sdk/sign`) uses only Node's `crypto`; the device verifier follows it and is tested against envelopes it signs. Key ids use letters, digits, dot, dash and underscore.
+
+```bash
+volumio-plugin sign <zip> --key <private.pem> --key-id <id>       # development key; the store signs with its KMS key
+volumio-plugin verify <zip> --key <id>=<public.pem> [--key ...]
+```
+
 ```bash
 npm test
 ```
