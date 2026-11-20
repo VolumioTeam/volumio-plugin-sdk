@@ -5,11 +5,18 @@ import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { rawG2 } from '../src/g2/index.js';
 import { countByKey } from '../src/g2/baseline.js';
+import { GITLEAKS_VERSION, gitleaksVersion } from '../src/g2/secrets.js';
 
 const root = process.argv[2];
 if (!root) {
   process.stderr.write('Usage: node scripts/g2-baseline.js <plugins-dir>\n');
   process.exit(2);
+}
+// Without the pinned gitleaks its counts would drop out of the baseline, and come back as new violations.
+const gitleaks = gitleaksVersion();
+if (gitleaks !== GITLEAKS_VERSION) {
+  process.stderr.write(`gitleaks ${GITLEAKS_VERSION} is required to record the baseline (found ${gitleaks ?? 'none'}): run it in the build container\n`);
+  process.exit(1);
 }
 
 const idOf = (dir) => {

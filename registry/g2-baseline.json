@@ -85,7 +85,8 @@
     "G2.shell.set-e|install.sh": 1
   },
   "flightmode": {
-    "G2.js.shell|index.js": 2
+    "G2.js.shell|index.js": 2,
+    "G2.secret.generic-api-key|index.js": 1
   },
   "fusiondsp": {
     "G2.shell.set-e|install.sh": 1,
@@ -124,7 +125,11 @@
     "G2.shell.set-e|install.sh": 1
   },
   "jp_radio": {
-    "G2.shell.set-e|install.sh": 1
+    "G2.shell.set-e|install.sh": 1,
+    "G2.secret.generic-api-key|dist/lib/consts/radiko-urls.d.ts": 1,
+    "G2.secret.generic-api-key|dist/lib/consts/radiko-urls.js": 1,
+    "G2.secret.generic-api-key|src/lib/consts/radiko-urls.ts": 1,
+    "G2.secret.generic-api-key|dist/lib/consts/radiko-urls.js.map": 1
   },
   "just_oled": {
     "G2.js.shell|index.js": 2,
@@ -138,7 +143,8 @@
   },
   "korean_radio_alarm": {
     "G2.js.shell|index.js": 1,
-    "G2.shell.set-e|install.sh": 1
+    "G2.shell.set-e|install.sh": 1,
+    "G2.secret.jwt|index.js": 1
   },
   "lastfm": {
     "G2.js.console-log|index.js": 2,
@@ -234,7 +240,8 @@
     "G2.shell.package-manager|install.sh": 1
   },
   "pandora": {
-    "G2.shell.set-e|install.sh": 1
+    "G2.shell.set-e|install.sh": 1,
+    "G2.secret.generic-api-key|pandora_handler.js": 2
   },
   "peppymeterbasic": {
     "G2.js.shell|index.js": 6,
@@ -356,7 +363,8 @@
     "G2.js.console-log|lib/metadata.js": 22,
     "G2.shell.set-e|install.sh": 1,
     "G2.shell.package-manager|install.sh": 8,
-    "G2.shell.sudoers|install.sh": 2
+    "G2.shell.sudoers|install.sh": 2,
+    "G2.secret.generic-api-key|lib/metadata.js": 1
   },
   "scheduledrestart": {
     "G2.js.shell|index.js": 1,
