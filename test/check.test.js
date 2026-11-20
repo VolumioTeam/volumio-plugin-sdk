@@ -107,3 +107,9 @@ test('a folder with neither manifest is a finding', () => {
   const dir = plugin(required);
   assert.deepEqual(rules(check(dir, opts)), ['error G1.manifest']);
 });
+
+test('the bundled registry is used when none is given', () => {
+  const manifest = { ...v2Manifest, function: 'spotify-connect' };
+  const dir = plugin({ ...required, 'volumio-plugin.json': manifest, 'package.json': { main: 'index.js' } });
+  assert.deepEqual(rules(check(dir)), []);
+});

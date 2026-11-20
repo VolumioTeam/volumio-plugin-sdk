@@ -4,7 +4,7 @@ import semver from 'semver';
 import { validateManifest } from './manifest.js';
 import { fromV1 } from './fromV1.js';
 
-const REGISTRY = JSON.parse(readFileSync(new URL('../registry/functions.json', import.meta.url), 'utf8'));
+const REGISTRY = JSON.parse(readFileSync(new URL('../registry/functions.json', import.meta.url), 'utf8')).map((f) => f.id);
 
 /** @typedef {{ rule: string, severity: 'error' | 'warning' | 'todo', message: string, fix?: string, path?: string }} Finding */
 
