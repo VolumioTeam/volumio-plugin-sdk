@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import semver from 'semver';
 import { validateManifest } from './manifest.js';
 import { fromV1 } from './fromV1.js';
+import { g2, BASELINE } from './g2/index.js';
 
 const REGISTRY = JSON.parse(readFileSync(new URL('../registry/functions.json', import.meta.url), 'utf8')).map((f) => f.id);
 
@@ -21,7 +22,7 @@ const readJson = (file) => {
 };
 
 /** Reads the manifest: volumio-plugin.json, else package.json through the v1 shim. */
-const load = (dir) => {
+export const load = (dir) => {
   const v2File = join(dir, 'volumio-plugin.json');
   const pkgFile = join(dir, 'package.json');
   const pkg = existsSync(pkgFile) ? readJson(pkgFile) : { value: {} };
@@ -58,12 +59,16 @@ const ruleFindings = ({ manifest }, functions) => {
   return findings;
 };
 
-// The source may keep main and i18n in a build folder (TypeScript); the built package may not.
-const builtFindings = (dir, { pkg }) => [
-  pkg.main !== undefined && !['index.js', './index.js'].includes(pkg.main) &&
-    error('G1.main', `package.json main is "${pkg.main}"`, 'The crypter needs main = index.js at the package root'),
-  !existsSync(join(dir, 'i18n', 'strings_en.json')) && error('G1.file.i18n', 'i18n/strings_en.json is missing', 'Add the English strings file'),
-].filter(Boolean);
+// The source may keep main and i18n in a build folder (TypeScript); the built v2 package may not.
+// v1 plugins run unencrypted from the store, so for them it is only a warning.
+const builtFindings = (dir, { pkg, source }) => {
+  const report = source === 'v1' ? warning : error;
+  return [
+    pkg.main !== undefined && !['index.js', './index.js'].includes(pkg.main) &&
+      report('G1.main', `package.json main is "${pkg.main}"`, 'The crypter needs main = index.js at the package root'),
+    !existsSync(join(dir, 'i18n', 'strings_en.json')) && report('G1.file.i18n', 'i18n/strings_en.json is missing', 'Add the English strings file'),
+  ].filter(Boolean);
+};
 
 const fileFindings = (dir, { source }) => {
   const names = readdirSync(dir);
@@ -79,10 +84,11 @@ const fileFindings = (dir, { source }) => {
 /**
  * Gate G1 on one plugin folder.
  * @param {string} dir
- * @param {{ functions?: string[], built?: boolean }} [options] built: dir is the package CI built, not the source
- * @returns {{ dir: string, source?: 'v1' | 'v2', id?: string, findings: Finding[], dropped?: string[] }}
+ * @param {{ functions?: string[], built?: boolean, baseline?: Record<string, Record<string, number>> }} [options]
+ *   built: dir is the package CI built, not the source; baseline: G2 known violations per plugin id
+ * @returns {{ dir: string, source?: 'v1' | 'v2', id?: string, version?: string, findings: Finding[], dropped?: string[] }}
  */
-export function check(dir, { functions = REGISTRY, built = false } = {}) {
+export function check(dir, { functions = REGISTRY, built = false, baseline = BASELINE } = {}) {
   const loaded = load(dir);
   if (loaded.failure) return { dir, findings: [loaded.failure] };
   const findings = [
@@ -90,9 +96,10 @@ export function check(dir, { functions = REGISTRY, built = false } = {}) {
     ...ruleFindings(loaded, functions),
     ...(built ? builtFindings(dir, loaded) : []),
     ...fileFindings(dir, loaded),
+    ...g2(dir, { id: loaded.manifest.id, source: loaded.source }, baseline),
     ...(loaded.todo.length
       ? [{ rule: 'G1.v2-fields', severity: 'todo', message: `v1 plugin: add ${loaded.todo.join(' and ')} in volumio-plugin.json to move to v2` }]
       : []),
   ];
-  return { dir, source: loaded.source, id: loaded.manifest.id, findings, ...(loaded.source === 'v1' && { dropped: loaded.dropped }) };
+  return { dir, source: loaded.source, id: loaded.manifest.id, version: loaded.manifest.version, findings, ...(loaded.source === 'v1' && { dropped: loaded.dropped }) };
 }

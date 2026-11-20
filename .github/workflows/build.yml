@@ -1,0 +1,72 @@
+# Reusable workflow: builds a Volumio plugin for each architecture it declares,
+# runs the gates on the built package, and uploads zip + sha256 + provenance.
+name: Build Volumio plugin
+
+on:
+  workflow_call:
+    inputs:
+      path:
+        description: Plugin folder inside the repository
+        type: string
+        default: .
+      sdk-ref:
+        description: volumio-plugin-sdk ref whose CLI builds the plugin
+        type: string
+        default: main
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    runs-on: ubuntu-24.04
+    outputs:
+      arch: ${{ steps.arch.outputs.arch }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: plugin
+      - uses: actions/checkout@v4
+        with:
+          repository: VolumioTeam/volumio-plugin-sdk
+          ref: ${{ inputs.sdk-ref }}
+          path: sdk
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci --prefix sdk --omit=dev --no-audit --no-fund
+      - id: arch
+        env:
+          PLUGIN_PATH: plugin/${{ inputs.path }}
+        run: |
+          arch=$(node sdk/bin/volumio-plugin.js arch "$PLUGIN_PATH")
+          echo "arch=$arch" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: plan
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: ${{ fromJSON(needs.plan.outputs.arch) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: plugin
+      - uses: actions/checkout@v4
+        with:
+          repository: VolumioTeam/volumio-plugin-sdk
+          ref: ${{ inputs.sdk-ref }}
+          path: sdk
+      - if: matrix.arch != 'amd64'
+        uses: docker/setup-qemu-action@v3
+      - env:
+          PLUGIN_PATH: plugin/${{ inputs.path }}
+          ARCH: ${{ matrix.arch }}
+        run: sdk/scripts/build.sh "$PLUGIN_PATH" "$ARCH" dist-plugin
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: plugin-${{ matrix.arch }}
+          path: dist-plugin/
+          if-no-files-found: error
