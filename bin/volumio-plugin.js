@@ -7,7 +7,7 @@ const print = (result) => {
   const errors = result.findings.filter((f) => f.severity === 'error').length;
   const head = `${errors ? '✖' : '✔'} ${result.id ?? result.dir}${result.source ? ` (${result.source})` : ''}`;
   const lines = result.findings.flatMap((f) => [
-    `  ${f.severity.padEnd(7)} ${f.rule}  ${f.message}`,
+    `  ${f.severity.padEnd(7)} ${f.rule}  ${f.file ? `${f.file}${f.line ? `:${f.line}` : ''}  ` : ''}${f.message}`,
     ...(f.fix ? [`        fix: ${f.fix}`] : []),
   ]);
   return [head, ...lines].join('\n') + '\n';

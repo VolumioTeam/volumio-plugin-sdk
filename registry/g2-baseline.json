@@ -1,0 +1,467 @@
+{
+  "80s80s": {
+    "G2.shell.set-e|install.sh": 1
+  },
+  "allo_relay_attenuator": {
+    "G2.js.shell|index.js": 13,
+    "G2.js.sync-exec|index.js": 3,
+    "G2.shell.set-e|install.sh": 1,
+    "G2.shell.sudoers|install.sh": 5,
+    "G2.shell.package-manager|install.sh": 7
+  },
+  "argon_one_up": {
+    "G2.js.shell|index.js": 9,
+    "G2.shell.set-e|install.sh": 1,
+    "G2.shell.package-manager|install.sh": 2,
+    "G2.shell.or-true|install.sh": 4,
+    "G2.shell.sudoers|install.sh": 1
+  },
+  "artwork_one": {
+    "G2.js.sync-exec|index.js": 1,
+    "G2.js.console-log|ui/assets/firebase-Bpe4sERF.js": 4,
+    "G2.js.console-log|ui/assets/hls-C2ZFWO1Z.js": 1,
+    "G2.shell.set-e|install.sh": 1
+  },
+  "audio_keepalive": {
+    "G2.js.shell|index.js": 1,
+    "G2.shell.set-e|install.sh": 1,
+    "G2.shell.sudoers|install.sh": 1,
+    "G2.shell.or-true|install.sh": 2
+  },
+  "audiophonics_evo_sabre": {
+    "G2.js.shell|index.js": 2,
+    "G2.shell.set-e|install.sh": 1,
+    "G2.shell.sudoers|install.sh": 1,
+    "G2.shell.or-true|install.sh": 10
+  },
+  "audiophonicsonoff": {
+    "G2.shell.set-e|install.sh": 1
+  },
+  "autostart": {
+    "G2.shell.set-e|install.sh": 1
+  },
+  "backup_restore": {
+    "G2.js.shell|index.js": 4,
+    "G2.js.console-log|index.js": 2,
+    "G2.shell.set-e|install.sh": 1
+  },
+  "bandcamp": {
+    "G2.shell.set-e|install.sh": 1
+  },
+  "Bluetoothremote": {
+    "G2.js.shell|index.js": 10,
+    "G2.shell.set-e|install.sh": 1,
+    "G2.shell.package-manager|install.sh": 1
+  },
+  "calmradio": {
+    "G2.js.console-log|index.js": 2,
+    "G2.shell.set-e|install.sh": 1
+  },
+  "controradio": {
+    "G2.shell.set-e|install.sh": 1
+  },
+  "display_configuration": {
+    "G2.shell.set-e|install.sh": 1,
+    "G2.shell.sudoers|install.sh": 1,
+    "G2.shell.package-manager|install.sh": 1,
+    "G2.shell.or-true|install.sh": 1
+  },
+  "dmd2_music": {
+    "G2.shell.set-e|install.sh": 1
+  },
+  "es9018k2m": {
+    "G2.js.sync-exec|index.js": 1,
+    "G2.js.shell|index.js": 2,
+    "G2.js.command-router-override|index.js": 2,
+    "G2.shell.set-e|install.sh": 1,
+    "G2.shell.package-manager|install.sh": 1
+  },
+  "example_plugin": {
+    "G2.shell.set-e|install.sh": 1,
+    "G2.shell.package-manager|install.sh": 1
+  },
+  "ferrum_streaming_control_technology": {
+    "G2.shell.set-e|install.sh": 1
+  },
+  "flightmode": {
+    "G2.js.shell|index.js": 2
+  },
+  "fusiondsp": {
+    "G2.shell.set-e|install.sh": 1,
+    "G2.shell.package-manager|install.sh": 1,
+    "G2.shell.download|install.sh": 4,
+    "G2.shellcheck.SC2164|install.sh": 7,
+    "G2.shellcheck.SC2242|install.sh": 1
+  },
+  "gpio_button_led": {
+    "G2.shell.set-e|install.sh": 1
+  },
+  "gpio_control": {
+    "G2.shell.set-e|install.sh": 1,
+    "G2.shell.package-manager|install.sh": 1
+  },
+  "gpio-buttons": {
+    "G2.shell.set-e|install.sh": 1
+  },
+  "httpcaller": {
+    "G2.js.console-log|index.js": 12,
+    "G2.shell.set-e|install.sh": 1
+  },
+  "ir_activity_led": {
+    "G2.js.shell|index.js": 1,
+    "G2.shell.set-e|install.sh": 1
+  },
+  "ir_controller": {
+    "G2.js.sync-exec|index.js": 1,
+    "G2.js.shell|index.js": 5,
+    "G2.shell.set-e|install.sh": 1,
+    "G2.shell.package-manager|install.sh": 1,
+    "G2.shellcheck.SC1090|install.sh": 1,
+    "G2.shellcheck.SC2174|install.sh": 1
+  },
+  "jellyfin": {
+    "G2.shell.set-e|install.sh": 1
+  },
+  "jp_radio": {
+    "G2.shell.set-e|install.sh": 1
+  },
+  "just_oled": {
+    "G2.js.shell|index.js": 2,
+    "G2.js.sync-exec|index.js": 1,
+    "G2.js.process-exit|scripts/resync.js": 3,
+    "G2.js.console-log|scripts/resync.js": 1,
+    "G2.shell.set-e|install.sh": 1,
+    "G2.shell.sudoers|install.sh": 1,
+    "G2.shell.or-true|install.sh": 7,
+    "G2.shell.package-manager|install.sh": 1
+  },
+  "korean_radio_alarm": {
+    "G2.js.shell|index.js": 1,
+    "G2.shell.set-e|install.sh": 1
+  },
+  "lastfm": {
+    "G2.js.console-log|index.js": 2,
+    "G2.js.console-log|lib/simple-lastfm/index.js": 8,
+    "G2.js.console-log|pausableTimer.js": 6,
+    "G2.shell.set-e|install.sh": 1,
+    "G2.shellcheck.SC2148|install.sh": 1
+  },
+  "lcd1602_vumeter": {
+    "G2.js.shell|index.js": 2,
+    "G2.js.sync-exec|index.js": 1,
+    "G2.shell.set-e|install.sh": 1,
+    "G2.shell.sudoers|install.sh": 1,
+    "G2.shell.or-true|install.sh": 5,
+    "G2.shell.package-manager|install.sh": 1
+  },
+  "metaroon": {
+    "G2.js.shell|index.js": 2,
+    "G2.shell.set-e|install.sh": 1,
+    "G2.shell.package-manager|install.sh": 4,
+    "G2.shell.download|install.sh": 1,
+    "G2.shellcheck.SC2034|install.sh": 1,
+    "G2.shellcheck.SC2010|install.sh": 1
+  },
+  "minidlna": {
+    "G2.js.shell|index.js": 2,
+    "G2.shell.set-e|install.sh": 1,
+    "G2.shell.package-manager|install.sh": 1,
+    "G2.shellcheck.SC1090|install.sh": 1
+  },
+  "mixcloud": {
+    "G2.shell.set-e|install.sh": 1,
+    "G2.shell.package-manager|install.sh": 2
+  },
+  "moosbox": {
+    "G2.shell.set-e|install.sh": 1
+  },
+  "motherearthradio": {
+    "G2.shell.set-e|install.sh": 1
+  },
+  "mpd_oled": {
+    "G2.js.sync-exec|index.js": 3,
+    "G2.js.shell|index.js": 3,
+    "G2.shell.set-e|install.sh": 1,
+    "G2.shell.package-manager|install.sh": 1,
+    "G2.shellcheck.SC2164|install.sh": 1
+  },
+  "mpdantic": {
+    "G2.js.sync-exec|index.js": 1,
+    "G2.shell.set-e|install.sh": 1,
+    "G2.shell.sudoers|install.sh": 1,
+    "G2.shell.or-true|install.sh": 1
+  },
+  "mpdoutput": {
+    "G2.js.shell|index.js": 2,
+    "G2.shell.set-e|install.sh": 1,
+    "G2.shell.sudoers|install.sh": 1
+  },
+  "mqtt_client": {
+    "G2.shell.set-e|install.sh": 1,
+    "G2.shell.package-manager|install.sh": 1,
+    "G2.shellcheck.SC2164|install.sh": 1
+  },
+  "music_services_shield": {
+    "G2.js.shell|index.js": 3,
+    "G2.js.sync-exec|index.js": 2,
+    "G2.shell.set-e|install.sh": 1,
+    "G2.shell.package-manager|install.sh": 2,
+    "G2.shellcheck.SC2242|install.sh": 1
+  },
+  "my_dmd2_music": {
+    "G2.shell.set-e|install.sh": 1
+  },
+  "myb": {
+    "G2.shell.set-e|install.sh": 1
+  },
+  "now_playing": {
+    "G2.js.console-log|dist/app/client/build/static/js/main.70c84897.js": 8,
+    "G2.js.console-log|scripts/buildUIConfigSchema.js": 2,
+    "G2.js.console-log|src/app/client/build/static/js/main.70c84897.js": 8,
+    "G2.shell.set-e|install.sh": 1,
+    "G2.shell.package-manager|install.sh": 1,
+    "G2.shellcheck.SC2164|install.sh": 1
+  },
+  "oled_display_ssd1309": {
+    "G2.js.sync-exec|index.js": 1,
+    "G2.js.process-exit|index.js": 1
+  },
+  "outcast": {
+    "G2.shell.set-e|install.sh": 1,
+    "G2.shell.sudoers|install.sh": 1,
+    "G2.shell.or-true|install.sh": 1,
+    "G2.shell.package-manager|install.sh": 1
+  },
+  "pandora": {
+    "G2.shell.set-e|install.sh": 1
+  },
+  "peppymeterbasic": {
+    "G2.js.shell|index.js": 6,
+    "G2.js.console-log|index.js": 4,
+    "G2.js.sync-exec|index.js": 4,
+    "G2.shell.set-e|install.sh": 1,
+    "G2.shell.package-manager|install.sh": 2,
+    "G2.shellcheck.SC2242|install.sh": 1
+  },
+  "peppyspectrum": {
+    "G2.js.shell|index.js": 6,
+    "G2.js.console-log|index.js": 4,
+    "G2.js.sync-exec|index.js": 4,
+    "G2.shell.set-e|install.sh": 1,
+    "G2.shell.package-manager|install.sh": 1,
+    "G2.shellcheck.SC2242|install.sh": 1
+  },
+  "personal_radio": {
+    "G2.shell.set-e|install.sh": 1
+  },
+  "pi_screen_setup": {
+    "G2.js.sync-exec|index.js": 2,
+    "G2.js.sync-exec|lib/privileged.js": 1,
+    "G2.shell.set-e|install.sh": 1,
+    "G2.shell.sudoers|install.sh": 1,
+    "G2.shell.or-true|install.sh": 2
+  },
+  "pirate_audio_screensaver": {
+    "G2.js.shell|index.js": 1,
+    "G2.shell.package-manager|install.sh": 2,
+    "G2.shell.or-true|install.sh": 1,
+    "G2.shellcheck.SC1007|install.sh": 1
+  },
+  "pirateaudio": {
+    "G2.js.shell|index.js": 3,
+    "G2.shell.set-e|install.sh": 1,
+    "G2.shell.package-manager|install.sh": 2
+  },
+  "player_status_led": {
+    "G2.shell.set-e|install.sh": 1
+  },
+  "plex": {
+    "G2.js.command-router-override|dist/volumio/adapter.js": 2,
+    "G2.shell.set-e|install.sh": 1,
+    "G2.shell.package-manager|install.sh": 1
+  },
+  "podcast": {
+    "G2.shell.set-e|install.sh": 1
+  },
+  "rad357pl": {
+    "G2.shell.set-e|install.sh": 1
+  },
+  "radio_browser": {
+    "G2.shell.set-e|install.sh": 1
+  },
+  "radio_fip": {
+    "G2.shell.package-manager|install.sh": 1
+  },
+  "radio_paradise": {
+    "G2.shell.set-e|install.sh": 1
+  },
+  "randomizer": {
+    "G2.shell.set-e|install.sh": 1
+  },
+  "raspdac_mini_lcd": {
+    "G2.js.shell|index.js": 3,
+    "G2.shell.set-e|install.sh": 1,
+    "G2.shell.sudoers|install.sh": 3,
+    "G2.shell.or-true|install.sh": 9
+  },
+  "recently_added": {
+    "G2.js.process-exit|index.js": 1,
+    "G2.shell.set-e|install.sh": 1
+  },
+  "remotepi": {
+    "G2.js.shell|index.js": 1,
+    "G2.shell.set-e|install.sh": 1,
+    "G2.shell.package-manager|install.sh": 2,
+    "G2.shellcheck.SC1090|install.sh": 1
+  },
+  "RoonBridge": {
+    "G2.js.shell|index.js": 3,
+    "G2.shell.set-e|install.sh": 1,
+    "G2.shell.package-manager|install.sh": 1,
+    "G2.shell.download|install.sh": 1,
+    "G2.shellcheck.SC2164|install.sh": 2,
+    "G2.shellcheck.SC2154|install.sh": 1,
+    "G2.shellcheck.SC2266|install.sh": 1
+  },
+  "roseaudiosys": {
+    "G2.shell.set-e|install.sh": 1
+  },
+  "rotaryencoder2": {
+    "G2.js.console-log|_test/test.js": 4,
+    "G2.js.console-log|_test/testsocket.js": 4,
+    "G2.js.shell|index.js": 3,
+    "G2.shell.set-e|install.sh": 1
+  },
+  "rp2": {
+    "G2.js.console-log|dist/lib/playback/MPVPlayer.js": 2,
+    "G2.js.console-log|scripts/buildUIConfigSchema.js": 2,
+    "G2.shell.set-e|install.sh": 1,
+    "G2.shell.package-manager|install.sh": 1
+  },
+  "rpi_eeprom_config": {
+    "G2.js.shell|index.js": 6,
+    "G2.shell.set-e|install.sh": 1,
+    "G2.shell.package-manager|install.sh": 4,
+    "G2.shell.sudoers|install.sh": 4
+  },
+  "rpi_eeprom_updater": {
+    "G2.js.sync-exec|index.js": 33,
+    "G2.shell.set-e|install.sh": 1,
+    "G2.shell.package-manager|install.sh": 2,
+    "G2.shell.sudoers|install.sh": 4
+  },
+  "rtlsdr_radio": {
+    "G2.js.sync-exec|index.js": 2,
+    "G2.js.console-log|lib/metadata.js": 22,
+    "G2.shell.set-e|install.sh": 1,
+    "G2.shell.package-manager|install.sh": 8,
+    "G2.shell.sudoers|install.sh": 2
+  },
+  "scheduledrestart": {
+    "G2.js.shell|index.js": 1,
+    "G2.shell.set-e|install.sh": 1
+  },
+  "serialampcontroller": {
+    "G2.shell.set-e|install.sh": 1,
+    "G2.shell.package-manager|install.sh": 1
+  },
+  "SleepWakePlugin": {
+    "G2.shell.set-e|install.sh": 1
+  },
+  "soloist_connect": {
+    "G2.js.shell|index.js": 11,
+    "G2.js.sync-exec|index.js": 5,
+    "G2.shell.package-manager|install.sh": 2,
+    "G2.shell.or-true|install.sh": 1,
+    "G2.shell.sudoers|install.sh": 2
+  },
+  "soundcloud": {
+    "G2.js.console-log|scripts/buildUIConfigSchema.js": 2,
+    "G2.shell.set-e|install.sh": 1,
+    "G2.shell.package-manager|install.sh": 2
+  },
+  "spop": {
+    "G2.js.console-log|apiclient.js": 6,
+    "G2.js.shell|index.js": 3,
+    "G2.js.console-log|index.js": 1,
+    "G2.js.console-log|wsclient.js": 1,
+    "G2.shell.set-e|install.sh": 1,
+    "G2.shell.download|install.sh": 1
+  },
+  "squeezelite_mc": {
+    "G2.shell.set-e|install.sh": 1,
+    "G2.shellcheck.SC2242|install.sh": 2,
+    "G2.shellcheck.SC2046|install.sh": 1
+  },
+  "storage_manager": {
+    "G2.js.shell|index.js": 1,
+    "G2.shell.set-e|install.sh": 1,
+    "G2.shell.package-manager|install.sh": 4,
+    "G2.shell.or-true|install.sh": 2,
+    "G2.shell.sudoers|install.sh": 1
+  },
+  "stylish_player": {
+    "G2.js.console-log|app/assets/index-C9e7n1B3.js": 3,
+    "G2.js.sync-exec|index.js": 11,
+    "G2.js.shell|index.js": 2,
+    "G2.shell.set-e|install.sh": 1
+  },
+  "Systeminfo": {
+    "G2.js.shell|index.js": 25,
+    "G2.shell.set-e|install.sh": 1,
+    "G2.shell.package-manager|install.sh": 1,
+    "G2.shellcheck.SC2242|install.sh": 1
+  },
+  "touch_display": {
+    "G2.js.console-log|iframe_keyboard_bridge/content.js": 4,
+    "G2.js.shell|index.js": 22,
+    "G2.shell.set-e|install.sh": 1,
+    "G2.shell.package-manager|install.sh": 9,
+    "G2.shellcheck.SC1090|install.sh": 1
+  },
+  "unhappy_triggerhappy": {
+    "G2.js.shell|index.js": 2,
+    "G2.shell.set-e|install.sh": 1,
+    "G2.shell.sudoers|install.sh": 1,
+    "G2.shell.or-true|install.sh": 1
+  },
+  "unspike": {
+    "G2.js.shell|index.js": 2,
+    "G2.shell.set-e|install.sh": 1,
+    "G2.shell.sudoers|install.sh": 1,
+    "G2.shell.or-true|install.sh": 1
+  },
+  "volumio-stream-watchdog": {
+    "G2.js.command-router-override|index.js": 2,
+    "G2.shell.set-e|install.sh": 1
+  },
+  "volusonic": {
+    "G2.shell.set-e|install.sh": 1
+  },
+  "waveshare28": {
+    "G2.js.sync-exec|index.js": 2,
+    "G2.js.shell|index.js": 1,
+    "G2.shell.sudoers|install.sh": 2,
+    "G2.shell.or-true|install.sh": 1
+  },
+  "youtube2": {
+    "G2.js.console-log|scripts/buildUIConfigSchema.js": 2,
+    "G2.shell.set-e|install.sh": 1,
+    "G2.shell.package-manager|install.sh": 2,
+    "G2.shellcheck.SC2164|install.sh": 2,
+    "G2.shellcheck.SC3044|install.sh": 2
+  },
+  "ytcr": {
+    "G2.shell.set-e|install.sh": 1,
+    "G2.shell.package-manager|install.sh": 1,
+    "G2.shellcheck.SC2164|install.sh": 2,
+    "G2.shellcheck.SC3044|install.sh": 2
+  },
+  "ytmusic": {
+    "G2.js.console-log|scripts/buildUIConfigSchema.js": 2,
+    "G2.shell.set-e|install.sh": 1,
+    "G2.shell.package-manager|install.sh": 4,
+    "G2.shellcheck.SC2164|install.sh": 2,
+    "G2.shellcheck.SC3044|install.sh": 2
+  }
+}

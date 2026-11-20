@@ -18,6 +18,22 @@ npx volumio-plugin check [plugin-dir ...] [--built] [--json]
 | `G1.main` (`--built`) | `package.json` `main` is `index.js`, as the crypter needs |
 | `G1.file.i18n` (`--built`) | `i18n/strings_en.json` exists |
 
+## G2: static checks
+
+`check` also runs G2 on every JavaScript file (tests and `node_modules` excluded) and on `install.sh`.
+
+| Rule | Checks |
+| --- | --- |
+| `G2.js.sync-exec` | No `execSync`, `execFileSync`, `spawnSync` |
+| `G2.js.shell` | No `exec`, no `shell: true`: commands only as an argument list |
+| `G2.js.process-exit`, `G2.js.global-handler` | No `process.exit` and no process-wide `uncaughtException`/`unhandledRejection` handlers, except in executables (shebang) |
+| `G2.js.command-router-override` | No replacing `commandRouter` methods |
+| `G2.js.console-log` | No `console.log` |
+| `G2.shell.*` | `set -e`; no `|| true`; no package managers; no download without a `sha256sum` check; no sudoers |
+| `G2.shellcheck.SC*` | ShellCheck warnings and errors, when `shellcheck` is installed (CI always has it) |
+
+Inline `eslint-disable` comments are ignored. `registry/g2-baseline.json` holds the violations each published plugin has today: they show as one warning per rule and file, and any new one blocks. A v1 plugin with no baseline gets warnings; a v2 plugin gets errors. Regenerate it with `node scripts/g2-baseline.js <plugins-dir>`, using the ShellCheck version CI pins.
+
 ```bash
 npm test
 ```
