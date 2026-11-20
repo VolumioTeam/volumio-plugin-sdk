@@ -1,0 +1,30 @@
+{
+  "name": "@volumio/plugin-sdk",
+  "version": "0.1.0",
+  "description": "Volumio plugin manifest v2: schema, v1 shim and the volumio-plugin CLI",
+  "type": "module",
+  "bin": {
+    "volumio-plugin": "bin/volumio-plugin.js"
+  },
+  "exports": {
+    ".": "./src/index.js",
+    "./schema": "./schema/manifest.schema.json"
+  },
+  "files": [
+    "bin",
+    "src",
+    "schema",
+    "registry"
+  ],
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "ajv": "^8.20.0",
+    "semver": "^7.8.6"
+  }
+}

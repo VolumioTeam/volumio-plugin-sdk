@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://volumio.com/schemas/plugin/manifest-v2.json",
+  "title": "Volumio plugin manifest v2 (volumio-plugin.json)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "version", "type", "function", "title", "description", "engines", "arch", "permissions", "license"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "id": {
+      "description": "On-device folder name. No hyphens: the crypter rejects them.",
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_]{1,63}$"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(-[0-9A-Za-z.-]+)?$"
+    },
+    "type": {
+      "enum": ["audio_interface", "miscellanea", "music_service", "system_controller", "system_hardware", "user_interface"]
+    },
+    "function": {
+      "description": "Id from the closed function registry. One active plugin per function on a device.",
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "title": { "description": "Name shown in the store and the UI (v1 prettyName)", "type": "string", "minLength": 1, "maxLength": 80 },
+    "description": { "description": "What the plugin does (v1 details)", "type": "string", "minLength": 1 },
+    "icon": { "description": "Font Awesome class, as in v1", "type": "string", "minLength": 1 },
+    "changelog": { "type": "string" },
+    "bootPriority": { "description": "Start group, as v1 boot_priority. Default 100", "type": "integer", "minimum": 1, "maximum": 100 },
+    "engines": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["volumio", "api"],
+      "properties": {
+        "volumio": { "description": "semver range", "type": "string", "minLength": 1 },
+        "api": { "const": "2" }
+      }
+    },
+    "arch": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "enum": ["armhf", "arm64", "amd64"] }
+    },
+    "permissions": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "anyOf": [
+          { "enum": ["playback", "broadcast", "browse-source", "ui:toast", "ui:modal", "aampp", "spectrum"] },
+          { "type": "string", "pattern": "^plugin:[A-Za-z0-9_]+\\.[A-Za-z0-9_]+$" }
+        ]
+      }
+    },
+    "network": {
+      "description": "Hosts the plugin talks to. Not enforced: transparency, G4 comparison, fault injection.",
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^(\\*\\.)?[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$" }
+    },
+    "system": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "apt": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[a-z0-9][a-z0-9+.-]+$" }
+        },
+        "services": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[A-Za-z0-9_@.-]+\\.(service|timer|socket)$" }
+        },
+        "writes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^/" }
+        }
+      }
+    },
+    "settings": { "description": "Path to settings.schema.json, relative to the plugin root", "type": "string", "pattern": "^[^/]" },
+    "test": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "credentials": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+        "scenarios": { "type": "string", "pattern": "^[^/]" }
+      }
+    },
+    "license": { "description": "SPDX identifier", "type": "string", "minLength": 1 }
+  }
+}
