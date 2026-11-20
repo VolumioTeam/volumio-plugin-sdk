@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import semver from 'semver';
 import { validateManifest } from './manifest.js';
 import { fromV1 } from './fromV1.js';
+import { g2, BASELINE } from './g2/index.js';
 
 const REGISTRY = JSON.parse(readFileSync(new URL('../registry/functions.json', import.meta.url), 'utf8'));
 
@@ -79,10 +80,11 @@ const fileFindings = (dir, { source }) => {
 /**
  * Gate G1 on one plugin folder.
  * @param {string} dir
- * @param {{ functions?: string[], built?: boolean }} [options] built: dir is the package CI built, not the source
+ * @param {{ functions?: string[], built?: boolean, baseline?: Record<string, Record<string, number>> }} [options]
+ *   built: dir is the package CI built, not the source; baseline: G2 known violations per plugin id
  * @returns {{ dir: string, source?: 'v1' | 'v2', id?: string, findings: Finding[], dropped?: string[] }}
  */
-export function check(dir, { functions = REGISTRY, built = false } = {}) {
+export function check(dir, { functions = REGISTRY, built = false, baseline = BASELINE } = {}) {
   const loaded = load(dir);
   if (loaded.failure) return { dir, findings: [loaded.failure] };
   const findings = [
@@ -90,6 +92,7 @@ export function check(dir, { functions = REGISTRY, built = false } = {}) {
     ...ruleFindings(loaded, functions),
     ...(built ? builtFindings(dir, loaded) : []),
     ...fileFindings(dir, loaded),
+    ...g2(dir, { id: loaded.manifest.id, source: loaded.source }, baseline),
     ...(loaded.todo.length
       ? [{ rule: 'G1.v2-fields', severity: 'todo', message: `v1 plugin: add ${loaded.todo.join(' and ')} in volumio-plugin.json to move to v2` }]
       : []),
