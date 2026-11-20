@@ -164,7 +164,7 @@
   "metaroon": {
     "G2.js.shell|index.js": 2,
     "G2.shell.set-e|install.sh": 1,
-    "G2.shell.package-manager|install.sh": 4,
+    "G2.shell.package-manager|install.sh": 3,
     "G2.shell.download|install.sh": 1,
     "G2.shellcheck.SC2034|install.sh": 1,
     "G2.shellcheck.SC2010|install.sh": 1

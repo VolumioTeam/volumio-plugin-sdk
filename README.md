@@ -33,14 +33,14 @@ npx volumio-plugin check [plugin-dir ...] [--built] [--json]
 | `G2.js.process-exit`, `G2.js.global-handler` | No `process.exit` and no process-wide `uncaughtException`/`unhandledRejection` handlers, except in executables (shebang) |
 | `G2.js.command-router-override` | No replacing `commandRouter` methods |
 | `G2.js.console-log` | No `console.log` |
-| `G2.shell.*` | `set -e`; no `|| true`; no package managers; no download without a `sha256sum` check; no sudoers |
+| `G2.shell.*` | `set -e`; no `\|\| true`; no package managers; no download without a `sha256sum` check; no sudoers |
 | `G2.shellcheck.SC*` | ShellCheck warnings and errors, when `shellcheck` is installed (CI always has it) |
 | `G2.secret` | No private key or service token (AWS, GitHub, Slack, Google API, Stripe) in the plugin's files; the finding names the kind, never the secret |
 | `G2.secret.*` | gitleaks' default rules on the lines the built-in patterns did not flag, when `gitleaks` is installed (CI always has it). The plugin's `.gitleaks.toml`, `.gitleaksignore` and `gitleaks:allow` comments are ignored |
 | `G2.audit` (`package`) | No high or critical `npm audit` advisory on the production dependencies; a warning for v1, and a warning when the audit cannot run |
 | `G2.licence` (`package`) | Every production dependency has a licence: none, `UNLICENSED` or `SEE LICENSE IN` is an error (a warning for v1); copyleft (GPL, LGPL, AGPL) and unrecognised licences are warnings |
 
-Inline `eslint-disable` comments are ignored. `registry/g2-baseline.json` holds the violations each published plugin has today: they show as one warning per rule and file, and any new one blocks. A v1 plugin with no baseline gets warnings; a v2 plugin gets errors. Regenerate it with `node scripts/g2-baseline.js <plugins-dir>`, in the build container, which has the ShellCheck and gitleaks versions CI pins (`scripts/install-tools.sh`).
+Inline `eslint-disable` comments, `# shellcheck` directives and `.shellcheckrc` are ignored: a plugin cannot switch a check off. `registry/g2-baseline.json` holds the violations each published plugin has today: they show as one warning per rule and file, and any new one blocks. A v1 plugin with no baseline gets warnings; a v2 plugin gets errors. Regenerate it with `node scripts/g2-baseline.js <plugins-dir>`, in the build container, which has the ShellCheck and gitleaks versions CI pins (`scripts/install-tools.sh`).
 
 ## Build
 
@@ -70,6 +70,15 @@ scripts/build.sh <plugin-dir> <armhf|amd64|arm64> [out-dir]
 | --- | --- |
 | `G3.native-arch` | Every `.node` module is built for the target architecture |
 | `G3.lockfile` | `package-lock.json` is committed; a warning for v1 plugins |
+
+## Signing
+
+The store signs each release it accepts: `<zip>.sig` is a [DSSE](https://github.com/secure-systems-lab/dsse) envelope whose payload (`volumio.plugin.release/v1`) binds the zip's sha256 to the plugin id, version, architecture and source commit, signed with Ed25519. The device trusts two keys, the active one and the next, so rotating the key needs no device update. `src/sign.js` (`@volumio/plugin-sdk/sign`) uses only Node's `crypto`; the device verifier follows it and is tested against envelopes it signs. Key ids use letters, digits, dot, dash and underscore.
+
+```bash
+volumio-plugin sign <zip> --key <private.pem> --key-id <id>       # development key; the store signs with its KMS key
+volumio-plugin verify <zip> --key <id>=<public.pem> [--key ...]
+```
 
 ```bash
 npm test
