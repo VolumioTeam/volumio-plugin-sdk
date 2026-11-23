@@ -70,3 +70,25 @@ jobs:
           name: plugin-${{ matrix.arch }}
           path: dist-plugin/
           if-no-files-found: error
+
+  # G4 on the amd64 package: install it in a Volumio sandbox and compare with the manifest.
+  sandbox:
+    needs: [plan, build]
+    if: contains(fromJSON(needs.plan.outputs.arch), 'amd64')
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          repository: VolumioTeam/volumio-plugin-sdk
+          ref: ${{ inputs.sdk-ref }}
+          path: sdk
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 20
+      - run: npm ci --prefix sdk --omit=dev --no-audit --no-fund
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: plugin-amd64
+          path: dist-plugin
+      - run: sdk/scripts/sandbox-image.sh
+      - run: node sdk/bin/volumio-plugin.js sandbox dist-plugin/*-amd64.zip
