@@ -5,7 +5,7 @@ import { validateManifest } from './manifest.js';
 import { fromV1 } from './fromV1.js';
 import { g2, BASELINE } from './g2/index.js';
 
-const REGISTRY = JSON.parse(readFileSync(new URL('../registry/functions.json', import.meta.url), 'utf8')).map((f) => f.id);
+export const REGISTRY = JSON.parse(readFileSync(new URL('../registry/functions.json', import.meta.url), 'utf8')).map((f) => f.id);
 
 /** @typedef {{ rule: string, severity: 'error' | 'warning' | 'todo', message: string, fix?: string, path?: string }} Finding */
 
@@ -70,6 +70,12 @@ const builtFindings = (dir, { pkg, source }) => {
   ].filter(Boolean);
 };
 
+// v2: package generates what Volumio reads from package.json, so the source must not set it.
+const GENERATED = ['name', 'version', 'volumio_info'];
+const generatedFindings = ({ source, pkg }) =>
+  source !== 'v2' ? [] : GENERATED.filter((k) => pkg[k] !== undefined).map((k) =>
+    error('G1.package-json', `package.json sets ${k}, which is generated from volumio-plugin.json`, `Remove ${k} from package.json`));
+
 const fileFindings = (dir, { source }) => {
   const names = readdirSync(dir);
   const has = (re) => names.some((n) => re.test(n));
@@ -94,7 +100,7 @@ export function check(dir, { functions = REGISTRY, built = false, baseline = BAS
   const findings = [
     ...schemaFindings(loaded.manifest, loaded.todo),
     ...ruleFindings(loaded, functions),
-    ...(built ? builtFindings(dir, loaded) : []),
+    ...(built ? builtFindings(dir, loaded) : generatedFindings(loaded)),
     ...fileFindings(dir, loaded),
     ...g2(dir, { id: loaded.manifest.id, source: loaded.source }, baseline),
     ...(loaded.todo.length

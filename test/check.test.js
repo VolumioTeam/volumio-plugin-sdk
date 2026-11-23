@@ -12,7 +12,7 @@ const v2Manifest = {
   function: 'radio-paradise',
   title: 'Radio Paradise',
   description: 'Listen to Radio Paradise',
-  engines: { volumio: '>=4.0.0 <5.0.0', api: '2' },
+  engines: { volumio: '>=4.0.0 <5.0.0', api: '1' },
   arch: ['armhf', 'amd64'],
   permissions: ['playback'],
   license: 'MIT',
@@ -69,7 +69,7 @@ test('a function outside the registry is an error', () => {
 });
 
 test('an invalid volumio range is an error', () => {
-  const manifest = { ...v2Manifest, engines: { volumio: 'four', api: '2' } };
+  const manifest = { ...v2Manifest, engines: { volumio: 'four', api: '1' } };
   const dir = plugin({ ...required, 'volumio-plugin.json': manifest, 'package.json': { main: 'index.js' } });
   assert.deepEqual(rules(check(dir, opts)), ['error G1.engines']);
 });

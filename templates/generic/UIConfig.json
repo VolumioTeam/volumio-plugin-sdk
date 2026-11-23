@@ -1,0 +1,23 @@
+{
+  "page": { "label": "TRANSLATE.PLUGIN_NAME" },
+  "sections": [
+    {
+      "id": "settings",
+      "element": "section",
+      "label": "TRANSLATE.SETTINGS",
+      "icon": "fa-cog",
+      "onSave": { "type": "controller", "endpoint": "{{type}}/{{id}}", "method": "saveSettings" },
+      "saveButton": { "label": "TRANSLATE.SAVE", "data": ["greeting"] },
+      "content": [
+        {
+          "id": "greeting",
+          "element": "input",
+          "type": "text",
+          "label": "TRANSLATE.GREETING",
+          "doc": "TRANSLATE.GREETING_DOC",
+          "value": ""
+        }
+      ]
+    }
+  ]
+}

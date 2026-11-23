@@ -6,6 +6,7 @@ import { join, relative } from 'node:path';
 import { check, load } from './check.js';
 import { runAudit } from './audit.js';
 import { licenceFindings } from './licence.js';
+import { toV1 } from './fromV1.js';
 
 const ARCH = { arm: 'armhf', x64: 'amd64', arm64: 'arm64' };
 const ELF_MACHINE = { 40: 'armhf', 62: 'amd64', 183: 'arm64' };
@@ -36,7 +37,7 @@ export const elfArch = (header) =>
   header.length >= 20 && header.readUInt32BE(0) === 0x7f454c46 ? ELF_MACHINE[header.readUInt16LE(18)] : undefined;
 
 // Regular files only, like the device-side submit: no symlinks, which miniunzip does not restore.
-const files = (root, rel = '') =>
+export const files = (root, rel = '') =>
   readdirSync(join(root, rel), { withFileTypes: true }).flatMap((e) => {
     const path = rel ? `${rel}/${e.name}` : e.name;
     if (e.isDirectory()) return files(root, path);
@@ -121,10 +122,12 @@ export function packagePlugin(src, { out, arch = archOf(process.arch), epoch, me
   const stage = mkdtempSync(join(tmpdir(), 'volumio-plugin-'));
   cpSync(src, stage, { recursive: true, filter: (p) => !NOT_SHIPPED.has(relative(src, p).split('/')[0]) });
   const pkgFile = join(stage, 'package.json');
-  const pkg = existsSync(pkgFile) ? JSON.parse(readFileSync(pkgFile, 'utf8')) : {};
-
+  const source = load(stage);
   // The gates run on the tree that ships: the build can write files.
-  const installed = installDependencies(stage, pkg, load(stage).source);
+  const installed = installDependencies(stage, source.pkg ?? {}, source.source);
+  // Volumio reads package.json: a v2 plugin's is generated from volumio-plugin.json as the build left it.
+  const built = load(stage);
+  if (built.source === 'v2') writeFileSync(pkgFile, `${JSON.stringify(toV1(built.manifest, built.pkg), null, 2)}\n`);
   const gates = check(stage, { built: true, functions, baseline });
   // The build can add dependencies: decide on the manifest that ships.
   const shipped = existsSync(pkgFile) ? JSON.parse(readFileSync(pkgFile, 'utf8')) : {};
