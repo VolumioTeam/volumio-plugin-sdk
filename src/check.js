@@ -102,7 +102,7 @@ export function check(dir, { functions = REGISTRY, built = false, baseline = BAS
     ...ruleFindings(loaded, functions),
     ...(built ? builtFindings(dir, loaded) : generatedFindings(loaded)),
     ...fileFindings(dir, loaded),
-    ...g2(dir, { id: loaded.manifest.id, source: loaded.source, apt: loaded.manifest.system?.apt }, baseline),
+    ...g2(dir, { id: loaded.manifest.id, source: loaded.source, apt: Array.isArray(loaded.manifest.system?.apt) ? loaded.manifest.system.apt : [] }, baseline),
     ...(loaded.todo.length
       ? [{ rule: 'G1.v2-fields', severity: 'todo', message: `v1 plugin: add ${loaded.todo.join(' and ')} in volumio-plugin.json to move to v2` }]
       : []),

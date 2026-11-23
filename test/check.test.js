@@ -140,4 +140,6 @@ test('install.sh may apt-get install what system.apt declares, nothing else', ()
   const rules = (manifest) => check(plugin({ ...required, 'volumio-plugin.json': manifest, 'install.sh': script }), opts).findings.map((f) => f.rule);
   assert.deepEqual(rules({ ...v2Manifest, system: { apt: ['libfoo'] } }), []);
   assert.deepEqual(rules(v2Manifest), ['G2.shell.package-manager']);
+  // An invalid system.apt is a schema finding, not a crash.
+  assert.deepEqual(rules({ ...v2Manifest, system: { apt: null } }), ['G1.schema', 'G2.shell.package-manager']);
 });

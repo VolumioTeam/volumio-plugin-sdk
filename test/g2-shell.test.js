@@ -79,6 +79,8 @@ test('apt-get install of the packages declared in system.apt passes', () => {
   assert.deepEqual(run('sudo apt-get -o Dpkg::Options::=--force-confold install -y libfoo=1.2 bar:arm64'), []);
   assert.deepEqual(run('apt-get install -y \\\n  libfoo \\\n  bar'), []);
   assert.deepEqual(run('apt-get install -y libfoo && apt install bar'), []);
+  assert.deepEqual(run('apt-get install "libfoo" \'bar\' >/dev/null 2>&1\napt-get install libfoo > /tmp/log\nbash -c "apt-get install libfoo"'), []);
+  assert.deepEqual(run('apt-get --option Dpkg::Options::=--force-confold -t bookworm install libfoo'), []);
 });
 
 test('apt-get install of anything else names what is missing', () => {
@@ -86,12 +88,24 @@ test('apt-get install of anything else names what is missing', () => {
   assert.deepEqual(run('apt-get install -y libfoo baz qux'), ['3:install.sh installs baz, qux, not declared in system.apt']);
   assert.deepEqual(run('apt-get install -y \\\n  libfoo \\\n  baz'), ['3:install.sh installs baz, not declared in system.apt']);
   assert.deepEqual(run('echo start && \\\n  apt-get install baz'), ['4:install.sh installs baz, not declared in system.apt']);
-  assert.deepEqual(run('apt-get install -y $PACKAGES\napt-get install -f\nbash -c "apt-get install libfoo"'), [
+  assert.deepEqual(run('apt-get install -y $PACKAGES\napt-get install -f\napt-get install libfoo=$VERSION'), [
     '3:install.sh installs APT packages it does not name',
     '4:install.sh installs APT packages it does not name',
     '5:install.sh installs APT packages it does not name',
   ]);
+  // An option value before install is not the subcommand; a redirection does not hide what follows it.
+  assert.deepEqual(run('apt-get -o Dpkg::Options::=--force-confold install baz\napt-get install >/dev/null baz'), [
+    '3:install.sh installs baz, not declared in system.apt',
+    '4:install.sh installs baz, not declared in system.apt',
+  ]);
+  // A command string is read as code: what it installs is checked too.
+  assert.deepEqual(run("sh -c 'apt-get install libfoo; apt-get install baz'"), ['3:install.sh installs baz, not declared in system.apt']);
   assert.deepEqual(run('apt-get install ./local.deb'), ['3:install.sh installs APT packages it does not name']);
+});
+
+test('one package-manager finding per line, so the baseline still counts lines', () => {
+  const found = shellFindings(safe('npm install && apt-get install baz'), 'install.sh', []);
+  assert.deepEqual(found.map((f) => `${f.line}:${f.message}`), ['3:install.sh runs a package manager; install.sh installs baz, not declared in system.apt']);
 });
 
 test('npm, pip and dpkg stay forbidden whatever system.apt declares', () => {

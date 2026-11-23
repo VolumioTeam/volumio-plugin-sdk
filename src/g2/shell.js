@@ -38,27 +38,47 @@ const LINE_RULES = [
 ];
 
 // apt-get install is allowed for the packages the manifest declares in system.apt.
-// ponytail: -o, -c and -t are the options that take a value; any other word starting with - is a flag.
-const APT_INSTALL = /\b(?:apt-get|apt|aptitude)\s+(?:-\S+\s+)*install\b([^;&|)]*)/g;
+// ponytail: words split on spaces with quotes dropped, not a shell parser.
+const APT_COMMAND = /\b(?:apt-get|apt|aptitude)\s([^;&|)]*)/g;
 const APT_ON = /\b(?:apt-get|apt|aptitude)\b/;
 const APT_NAME = /^[a-z0-9][a-z0-9+.-]+$/;
-// One finding per line at most, as for every other line rule: the baseline counts lines.
+// Options that take the next word as their value, and redirections whose target may be the next word.
+const WITH_VALUE = /^(-[oct]|--(option|config-file|target-release|default-release)|\d*[<>]+&?)$/;
+const REDIRECT = /^\d*[<>]/;
+
+/** The operands of one apt command when its subcommand is install. */
+const installOperands = (args) => {
+  const words = args.trim().split(/\s+/).filter(Boolean);
+  const operands = [];
+  for (let i = 0; i < words.length; i++) {
+    if (WITH_VALUE.test(words[i])) i++;
+    else if (!words[i].startsWith('-') && !REDIRECT.test(words[i])) operands.push(words[i]);
+  }
+  return operands[0] === 'install' ? operands.slice(1) : undefined;
+};
+
 const aptFindings = (command, apt) => {
-  const names = [...command.matchAll(APT_INSTALL)].map(([, rest]) => {
-    const words = rest.trim().split(/\s+/).filter(Boolean);
-    const packages = words.filter((w, i) => !w.startsWith('-') && !/^-[oct]$/.test(words[i - 1] ?? ''));
-    // A version, architecture or release after the name: pkg=1.2, pkg:arm64, pkg/bookworm-backports.
-    return packages.length ? packages.map((p) => p.split(/[=:/]/)[0]) : [''];
-  });
-  if (!names.length) return [];
-  if (!names.flat().every((n) => APT_NAME.test(n))) {
+  const installs = [...command.matchAll(APT_COMMAND)].map(([, args]) => installOperands(args)).filter(Boolean);
+  if (!installs.length) return [];
+  // An install that names nothing (apt-get install -f) installs what apt picks: '' never passes.
+  const operands = installs.flatMap((o) => (o.length ? o : ['']));
+  // An expansion can split into other packages: literal words only, their quotes dropped.
+  const literal = operands.map((o) => (/[$`]/.test(o) ? '' : o.replace(/["']/g, '')));
+  // A version, architecture or release after the name: pkg=1.2, pkg:arm64, pkg/bookworm-backports.
+  const names = literal.map((o) => o.split(/[=:/]/)[0]);
+  if (!names.every((n) => APT_NAME.test(n))) {
     return [{ message: 'install.sh installs APT packages it does not name', fix: 'Name each package in the apt-get install line, as declared in system.apt' }];
   }
-  const undeclared = [...new Set(names.flat())].filter((n) => !apt.includes(n));
+  const undeclared = [...new Set(names)].filter((n) => !apt.includes(n));
   return undeclared.length
     ? [{ message: `install.sh installs ${undeclared.join(', ')}, not declared in system.apt`, fix: `Add ${undeclared.join(', ')} to system.apt in volumio-plugin.json` }]
     : [];
 };
+// One finding per rule and line, messages joined: the baseline counts lines.
+const onePerRule = (found) => [...found.reduce((byRule, f) => {
+  const seen = byRule.get(f.rule);
+  return byRule.set(f.rule, seen ? { ...seen, message: `${seen.message}; ${f.message}`, fix: `${seen.fix}; ${f.fix}` } : f);
+}, new Map()).values()];
 // The command a line starts, with the lines it continues on (a trailing backslash).
 const continued = (code, i) => {
   let text = code[i];
@@ -82,11 +102,11 @@ export function shellFindings(script, file, apt = []) {
   const missingSetE = !SET_E.test(script)
     ? [{ rule: 'G2.shell.set-e', severity: 'error', file, line: 1, message: 'install.sh does not stop on the first error', fix: 'Add set -eu at the top. A -e on the shebang line does not count: Volumio runs install.sh with sh' }]
     : [];
-  const perLine = lines.flatMap((text, i) => [
+  const perLine = lines.flatMap((text, i) => onePerRule([
     ...rules.filter((r) => r.test.test(r.raw ? text.match(CODE)[0] : code[i])).map((r) => finding(r, i + 1)),
     // On the line apt-get is on, not on a line it continues from.
     ...(APT_ON.test(code[i]) ? aptFindings(continued(code, i), apt) : []).map((f) => finding({ rule: 'G2.shell.package-manager', ...f }, i + 1)),
-  ]);
+  ]));
   return [...missingSetE, ...perLine];
 }
 
