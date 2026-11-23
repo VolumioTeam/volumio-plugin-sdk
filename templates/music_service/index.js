@@ -18,8 +18,10 @@ const VConf = volumioModule('v-conf');
 const catalog = require('./catalog.json');
 
 // Every URI the plugin hands to Volumio starts with this. Volumio sends Browse to the
-// first source whose URI starts the requested one, so no other source's URI may start it.
-const ROOT = '{{id}}';
+// first source whose URI starts the requested one, and routes favourites, playlists, radio,
+// search and upnp itself: a root that started with the id would lose radio_*, upnp_* and
+// the like to them.
+const ROOT = 'music_service/{{id}}';
 const trackUri = (track) => `${ROOT}/track/${track.id}`;
 
 // Volumio creates one instance with `new` and calls the methods below.
@@ -71,13 +73,14 @@ module.exports = class {{className}} {
     });
   }
 
-  // Play: what a URI plays. service 'mpd' hands the stream URL to MPD, which then
-  // handles pause, stop and seek; the plugin needs no playback code of its own.
+  // Play: what a URI plays, as a list: Favourites reads the first item. service 'mpd'
+  // hands the stream URL to MPD, which then handles pause, stop and seek; the plugin
+  // needs no playback code of its own.
   explodeUri(uri) {
     const track = catalog.find((t) => trackUri(t) === uri);
     if (!track) return libQ.reject(new Error(`{{id}}: nothing plays ${uri}`));
     const { title, artist, album } = track;
-    return libQ.resolve({ service: 'mpd', type: 'track', uri: track.url, name: title, title, artist, album });
+    return libQ.resolve([{ service: 'mpd', type: 'track', uri: track.url, name: title, title, artist, album }]);
   }
 
   // Search: Volumio asks every source at once. Resolve null when nothing matches and
