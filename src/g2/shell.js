@@ -29,21 +29,72 @@ const LINE_RULES = [
   { rule: 'G2.shell.or-true', test: /\|\|\s*(true|:)\s*($|[;&|)])/, message: '|| true hides a failure', fix: 'Let the command fail, or handle the failure explicitly' },
   {
     rule: 'G2.shell.package-manager',
-    test: /\b(apt-get|apt|aptitude)\s+(-\S+\s+)*install\b|\bdpkg\s+(-i|--install)\b|\b(npm|yarn|pnpm)\s+(i|install|add|ci)\b|\bpip3?\s+install\b/,
+    test: /\bdpkg\s+(-i|--install)\b|\b(npm|yarn|pnpm)\s+(i|install|add|ci)\b|\bpip3?\s+install\b/,
     message: 'install.sh runs a package manager',
-    fix: 'Declare APT packages in the manifest (system.apt) and ship npm dependencies inside the package',
+    fix: 'Ship npm dependencies inside the package; install Debian packages with apt-get, declared in system.apt',
   },
   // On the raw line: a quoted sudoers path is still written.
   { rule: 'G2.shell.sudoers', raw: true, test: /\/etc\/sudoers/, message: 'install.sh writes sudoers rules', fix: 'Ask for the capability you need instead' },
 ];
+
+// apt-get install is allowed for the packages the manifest declares in system.apt.
+// ponytail: words split on spaces with quotes dropped, not a shell parser.
+const APT_COMMAND = /\b(?:apt-get|apt|aptitude)\s([^;&|)]*)/g;
+const APT_ON = /\b(?:apt-get|apt|aptitude)\b/;
+const APT_NAME = /^[a-z0-9][a-z0-9+.-]+$/;
+// Options that take the next word as their value, and redirections whose target may be the next word.
+const WITH_VALUE = /^(-[oct]|--(option|config-file|target-release|default-release)|\d*[<>]+&?)$/;
+const REDIRECT = /^\d*[<>]/;
+
+/** The operands of one apt command when its subcommand is install. */
+const installOperands = (args) => {
+  const words = args.trim().split(/\s+/).filter(Boolean);
+  const operands = [];
+  for (let i = 0; i < words.length; i++) {
+    if (WITH_VALUE.test(words[i])) i++;
+    else if (!words[i].startsWith('-') && !REDIRECT.test(words[i])) operands.push(words[i]);
+  }
+  return operands[0] === 'install' ? operands.slice(1) : undefined;
+};
+
+const aptFindings = (command, apt) => {
+  const installs = [...command.matchAll(APT_COMMAND)].map(([, args]) => installOperands(args)).filter(Boolean);
+  if (!installs.length) return [];
+  // An install that names nothing (apt-get install -f) installs what apt picks: '' never passes.
+  const operands = installs.flatMap((o) => (o.length ? o : ['']));
+  // An expansion can split into other packages: literal words only, their quotes dropped.
+  const literal = operands.map((o) => (/[$`]/.test(o) ? '' : o.replace(/["']/g, '')));
+  // A version, architecture or release after the name: pkg=1.2, pkg:arm64, pkg/bookworm-backports.
+  const names = literal.map((o) => o.split(/[=:/]/)[0]);
+  if (!names.every((n) => APT_NAME.test(n))) {
+    return [{ message: 'install.sh installs APT packages it does not name', fix: 'Name each package in the apt-get install line, as declared in system.apt' }];
+  }
+  const undeclared = [...new Set(names)].filter((n) => !apt.includes(n));
+  return undeclared.length
+    ? [{ message: `install.sh installs ${undeclared.join(', ')}, not declared in system.apt`, fix: `Add ${undeclared.join(', ')} to system.apt in volumio-plugin.json` }]
+    : [];
+};
+// One finding per rule and line, messages joined: the baseline counts lines.
+const onePerRule = (found) => [...found.reduce((byRule, f) => {
+  const seen = byRule.get(f.rule);
+  return byRule.set(f.rule, seen ? { ...seen, message: `${seen.message}; ${f.message}`, fix: `${seen.fix}; ${f.fix}` } : f);
+}, new Map()).values()];
+// The command a line starts, with the lines it continues on (a trailing backslash).
+const continued = (code, i) => {
+  let text = code[i];
+  for (let j = i + 1; /\\\s*$/.test(text) && j < code.length; j++) text = text.replace(/\\\s*$/, ' ') + code[j];
+  return text.replace(/\\\s*$/, '');
+};
+
 const DOWNLOAD = { rule: 'G2.shell.download', test: /\b(wget|curl)\b/, message: 'a download with no checksum check', fix: 'Verify the file with sha256sum -c before using it' };
 
 /**
  * G2 rules on the text of install.sh.
  * @param {string} script
  * @param {string} file
+ * @param {string[]} [apt] the packages the manifest declares in system.apt
  */
-export function shellFindings(script, file) {
+export function shellFindings(script, file, apt = []) {
   const lines = script.split('\n');
   const code = lines.map(codeOf);
   const rules = code.some((c) => HAS_CHECKSUM.test(c)) ? LINE_RULES : [...LINE_RULES, DOWNLOAD];
@@ -51,8 +102,11 @@ export function shellFindings(script, file) {
   const missingSetE = !SET_E.test(script)
     ? [{ rule: 'G2.shell.set-e', severity: 'error', file, line: 1, message: 'install.sh does not stop on the first error', fix: 'Add set -eu at the top. A -e on the shebang line does not count: Volumio runs install.sh with sh' }]
     : [];
-  const perLine = lines.flatMap((text, i) =>
-    rules.filter((r) => r.test.test(r.raw ? text.match(CODE)[0] : code[i])).map((r) => finding(r, i + 1)));
+  const perLine = lines.flatMap((text, i) => onePerRule([
+    ...rules.filter((r) => r.test.test(r.raw ? text.match(CODE)[0] : code[i])).map((r) => finding(r, i + 1)),
+    // On the line apt-get is on, not on a line it continues from.
+    ...(APT_ON.test(code[i]) ? aptFindings(continued(code, i), apt) : []).map((f) => finding({ rule: 'G2.shell.package-manager', ...f }, i + 1)),
+  ]));
   return [...missingSetE, ...perLine];
 }
 
@@ -78,10 +132,14 @@ const shellcheck = (script, file) => {
   }));
 };
 
-/** G2 shell checks on a plugin's install.sh, if it has one. */
-export function shellDir(dir) {
+/**
+ * G2 shell checks on a plugin's install.sh, if it has one.
+ * @param {string} dir
+ * @param {string[]} [apt] the packages the manifest declares in system.apt
+ */
+export function shellDir(dir, apt) {
   const path = join(dir, 'install.sh');
   if (!existsSync(path)) return [];
   const script = readFileSync(path, 'utf8');
-  return [...shellFindings(script, 'install.sh'), ...shellcheck(script, 'install.sh')];
+  return [...shellFindings(script, 'install.sh', apt), ...shellcheck(script, 'install.sh')];
 }

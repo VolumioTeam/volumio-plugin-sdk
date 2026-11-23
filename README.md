@@ -46,7 +46,7 @@ npx --package=@volumio/plugin-sdk volumio-plugin check [plugin-dir ...] [--built
 | `G2.js.process-exit`, `G2.js.global-handler` | No `process.exit` and no process-wide `uncaughtException`/`unhandledRejection` handlers, except in executables (shebang) |
 | `G2.js.command-router-override` | No replacing `commandRouter` methods |
 | `G2.js.console-log` | No `console.log` |
-| `G2.shell.*` | `set -e` in the script; no `pipefail`; no `\|\| true`; no package managers; no download without a `sha256sum` check; no sudoers. Volumio runs `install.sh` with `sh` (dash): the shebang is ignored, so a `-e` there does not count, and dash has no `pipefail` |
+| `G2.shell.*` | `set -e` in the script; no `pipefail`; no `\|\| true`; no package managers, except `apt-get install` of the packages `system.apt` declares, named one by one (no variables, no local `.deb`); no download without a `sha256sum` check; no sudoers. Volumio runs `install.sh` with `sh` (dash): the shebang is ignored, so a `-e` there does not count, and dash has no `pipefail` |
 | `G2.shellcheck.SC*` | ShellCheck warnings and errors, checked as dash, when `shellcheck` is installed (CI always has it) |
 | `G2.secret` | No private key or service token (AWS, GitHub, Slack, Google API, Stripe) in the plugin's files; the finding names the kind, never the secret |
 | `G2.secret.*` | gitleaks' default rules on the lines the built-in patterns did not flag, when `gitleaks` is installed (CI always has it). The plugin's `.gitleaks.toml`, `.gitleaksignore` and `gitleaks:allow` comments are ignored |
