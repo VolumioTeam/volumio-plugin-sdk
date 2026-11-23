@@ -113,3 +113,23 @@ test('the gates see the files the build writes', () => {
   const result = packagePlugin(src, { ...options(out), baseline: {} });
   assert.ok(result.provenance.gates.findings.some((f) => f.rule === 'G2.secret' && f.file === 'client.pem'));
 });
+
+test('a v2 package.json carries the version the build leaves in the manifest', () => {
+  const out = mkdtempSync(join(tmpdir(), 'vpk-out-'));
+  const src = plugin({
+    'package.json': { main: 'index.js', scripts: { build: 'node bump.js' } },
+    'bump.js': "const f = 'volumio-plugin.json'; const m = JSON.parse(require('fs').readFileSync(f)); m.version = '1.2.4'; require('fs').writeFileSync(f, JSON.stringify(m));",
+  });
+  const result = packagePlugin(src, { ...options(out), baseline: {} });
+  const shipped = JSON.parse(spawnSync('unzip', ['-p', result.zip, 'package.json'], { encoding: 'utf8' }).stdout);
+  assert.equal(shipped.version, '1.2.4');
+  assert.equal(result.provenance.version, '1.2.4');
+});
+
+test('a v2 manifest without engines is a finding, not a crash', () => {
+  const out = mkdtempSync(join(tmpdir(), 'vpk-out-'));
+  const { engines, ...rest } = manifest;
+  const result = packagePlugin(plugin({ 'volumio-plugin.json': rest, 'package.json': { main: 'index.js' } }), { ...options(out), baseline: {} });
+  assert.equal(result.ok, false);
+  assert.ok(result.provenance.gates.findings.some((f) => f.rule === 'G1.schema' && /engines/.test(f.message)));
+});

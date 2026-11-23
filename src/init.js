@@ -3,6 +3,7 @@ import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, renameSync, w
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { validateManifest } from './manifest.js';
+import { REGISTRY } from './check.js';
 import { files } from './package.js';
 
 const TEMPLATES = new URL('../templates/', import.meta.url);
@@ -34,6 +35,7 @@ export function initPlugin(dir, { id, type, function: fn, title, description, au
   const manifest = JSON.parse(fill(readFileSync(join(source, 'volumio-plugin.json'), 'utf8'), values, true));
   const errors = validateManifest(manifest);
   if (errors.length) throw new Error(errors.map((e) => `${e.path.slice(1) || 'manifest'} ${e.message}`).join('\n'));
+  if (!REGISTRY.includes(fn)) throw new Error(`function "${fn}" is not an id from registry/functions.json`);
 
   mkdirSync(dir, { recursive: true });
   cpSync(source, dir, { recursive: true });

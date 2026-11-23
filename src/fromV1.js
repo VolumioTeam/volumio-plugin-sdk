@@ -43,7 +43,7 @@ export function toV1(manifest, pkg = {}) {
     version: manifest.version,
     description: manifest.description,
     license: manifest.license,
-    engines: { ...pkg.engines, volumio: manifest.engines.volumio },
+    engines: { ...pkg.engines, volumio: manifest.engines?.volumio },
     volumio_info: defined({
       plugin_type: manifest.type,
       ...Object.fromEntries(Object.entries(RENAMED).map(([v1, v2]) => [v1, manifest[v2]])),

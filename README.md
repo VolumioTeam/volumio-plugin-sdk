@@ -5,7 +5,7 @@ The Volumio plugin manifest v2 (`volumio-plugin.json`), its JSON Schema, and the
 ## A new plugin
 
 ```bash
-npx volumio-plugin init <dir> --id <id> --type <type> --function <function> --title <title> --description <text>
+npx --package=@volumio/plugin-sdk volumio-plugin init <dir> --id <id> --type <type> --function <function> --title <title> --description <text>
 ```
 
 `init` writes a plugin that runs on today's Volumio and passes every check: `volumio-plugin.json`, `index.js` (the lifecycle methods Volumio calls, each returning a kew promise), a settings page (`UIConfig.json`, `config.json`, `i18n/`), `install.sh`, tests against a fake Volumio (`npm test`), README and LICENSE (MIT). Then it runs `npm install`, which writes the `package-lock.json` the build needs (`--skip-install` to leave it out).
@@ -15,7 +15,7 @@ The developer edits only `volumio-plugin.json`: `package` writes `name`, `versio
 ## Checks
 
 ```bash
-npx volumio-plugin check [plugin-dir ...] [--built] [--json]
+npx --package=@volumio/plugin-sdk volumio-plugin check [plugin-dir ...] [--built] [--json]
 ```
 
 `check` runs gate G1 and exits 1 when any error is found. `--built` checks the package CI built rather than the source: a TypeScript source may keep `main` and i18n in a build folder, the built package may not. A folder without `volumio-plugin.json` is read through the v1 shim (`package.json` → `volumio_info`): the v2-only fields (`function`, `permissions`) show as `todo`, not as errors.

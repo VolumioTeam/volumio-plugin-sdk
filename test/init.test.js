@@ -41,6 +41,7 @@ test('its own tests pass against the fake Volumio', (t) => {
 test('bad values and a folder in use write nothing', (t) => {
   const dir = tmp(t);
   assert.throws(() => initPlugin(dir, { ...options, id: 'my-radio' }), /id must match/);
+  assert.throws(() => initPlugin(dir, { ...options, function: 'not-a-function' }), /not an id from registry\/functions\.json/);
   assert.ok(!existsSync(dir));
   initPlugin(dir, options);
   assert.throws(() => initPlugin(dir, options), /not empty/);

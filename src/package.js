@@ -122,14 +122,12 @@ export function packagePlugin(src, { out, arch = archOf(process.arch), epoch, me
   const stage = mkdtempSync(join(tmpdir(), 'volumio-plugin-'));
   cpSync(src, stage, { recursive: true, filter: (p) => !NOT_SHIPPED.has(relative(src, p).split('/')[0]) });
   const pkgFile = join(stage, 'package.json');
-  const own = existsSync(pkgFile) ? JSON.parse(readFileSync(pkgFile, 'utf8')) : {};
-  // Volumio reads package.json: a v2 plugin's is generated from volumio-plugin.json.
-  const loaded = load(stage);
-  const pkg = loaded.source === 'v2' && !loaded.failure ? toV1(loaded.manifest, own) : own;
-  if (pkg !== own) writeFileSync(pkgFile, `${JSON.stringify(pkg, null, 2)}\n`);
-
+  const source = load(stage);
   // The gates run on the tree that ships: the build can write files.
-  const installed = installDependencies(stage, pkg, loaded.source);
+  const installed = installDependencies(stage, source.pkg ?? {}, source.source);
+  // Volumio reads package.json: a v2 plugin's is generated from volumio-plugin.json as the build left it.
+  const built = load(stage);
+  if (built.source === 'v2') writeFileSync(pkgFile, `${JSON.stringify(toV1(built.manifest, built.pkg), null, 2)}\n`);
   const gates = check(stage, { built: true, functions, baseline });
   // The build can add dependencies: decide on the manifest that ships.
   const shipped = existsSync(pkgFile) ? JSON.parse(readFileSync(pkgFile, 'utf8')) : {};

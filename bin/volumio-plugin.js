@@ -75,7 +75,8 @@ const commands = {
     process.stdout.write(written.map((f) => `  ${f}\n`).join(''));
     if (!values['skip-install']) {
       // Writes package-lock.json, which the build needs.
-      const npm = spawnSync('npm', ['install', '--no-audit', '--no-fund'], { cwd: dir, stdio: 'inherit' });
+      // npm is a .cmd shim on Windows, which only a shell runs.
+      const npm = spawnSync('npm', ['install', '--no-audit', '--no-fund'], { cwd: dir, stdio: 'inherit', shell: process.platform === 'win32' });
       if (npm.status !== 0) return 1;
     }
     process.stdout.write(`✔ ${values.id} in ${dir}: edit volumio-plugin.json and index.js, then npm test and volumio-plugin check\n`);
