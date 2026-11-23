@@ -17,26 +17,30 @@ const tmp = (t) => {
 };
 const json = (dir, file) => JSON.parse(readFileSync(join(dir, file), 'utf8'));
 
-test('a new plugin passes every check with nothing to report', (t) => {
-  const dir = tmp(t);
-  initPlugin(dir, options);
-  assert.deepEqual(check(dir).findings, []);
-  assert.equal(json(dir, 'volumio-plugin.json').title, 'My "best" radio');
-  assert.equal(json(dir, 'i18n/strings_en.json').PLUGIN_NAME, 'My "best" radio');
-  assert.equal(json(dir, 'UIConfig.json').sections[0].onSave.endpoint, 'music_service/my_radio');
-  assert.match(readFileSync(join(dir, 'index.js'), 'utf8'), /class MyRadio \{/);
-  assert.ok(existsSync(join(dir, '.gitignore')));
-});
+// music_service has its own template over generic; the other types get generic.
+for (const [type, own] of [['music_service', true], ['miscellanea', false]]) {
+  test(`a new ${type} plugin passes every check with nothing to report`, (t) => {
+    const dir = tmp(t);
+    initPlugin(dir, { ...options, type });
+    assert.deepEqual(check(dir).findings, []);
+    assert.equal(json(dir, 'volumio-plugin.json').title, 'My "best" radio');
+    assert.equal(json(dir, 'i18n/strings_en.json').PLUGIN_NAME, 'My "best" radio');
+    assert.equal(json(dir, 'UIConfig.json').sections[0].onSave.endpoint, `${type}/my_radio`);
+    assert.match(readFileSync(join(dir, 'index.js'), 'utf8'), /class MyRadio \{/);
+    assert.ok(existsSync(join(dir, '.gitignore')));
+    assert.equal(existsSync(join(dir, 'catalog.json')), own);
+  });
 
-test('its own tests pass against the fake Volumio', (t) => {
-  const dir = tmp(t);
-  initPlugin(dir, options);
-  assert.equal(spawnSync('npm', ['install', '--no-audit', '--no-fund'], { cwd: dir }).status, 0);
-  // Without NODE_TEST_CONTEXT, which would make the plugin's runner report to this one and exit 0.
-  const { NODE_TEST_CONTEXT, ...env } = process.env;
-  const result = spawnSync('npm', ['test'], { cwd: dir, encoding: 'utf8', env });
-  assert.equal(result.status, 0, result.stdout + result.stderr);
-});
+  test(`a new ${type} plugin's own tests pass against the fake Volumio`, (t) => {
+    const dir = tmp(t);
+    initPlugin(dir, { ...options, type });
+    assert.equal(spawnSync('npm', ['install', '--no-audit', '--no-fund'], { cwd: dir }).status, 0);
+    // Without NODE_TEST_CONTEXT, which would make the plugin's runner report to this one and exit 0.
+    const { NODE_TEST_CONTEXT, ...env } = process.env;
+    const result = spawnSync('npm', ['test'], { cwd: dir, encoding: 'utf8', env });
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+  });
+}
 
 test('bad values and a folder in use write nothing', (t) => {
   const dir = tmp(t);

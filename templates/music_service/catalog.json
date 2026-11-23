@@ -1,0 +1,4 @@
+[
+  { "id": "1", "title": "First track", "artist": "Your artist", "album": "Your album", "url": "https://example.com/stream/first.mp3" },
+  { "id": "2", "title": "Second track", "artist": "Your artist", "album": "Your album", "url": "https://example.com/stream/second.mp3" }
+]

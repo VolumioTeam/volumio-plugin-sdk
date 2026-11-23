@@ -7,7 +7,8 @@ import { REGISTRY } from './check.js';
 import { files } from './package.js';
 
 const TEMPLATES = new URL('../templates/', import.meta.url);
-export const TEMPLATE_NAMES = ['generic'];
+// generic, plus a template per plugin type that needs its own code, copied over generic.
+export const TEMPLATE_NAMES = ['generic', 'music_service'];
 
 // "my_radio" -> "MyRadio", "80s_radio" -> "Plugin80sRadio": the class name in index.js.
 const classNameOf = (id) => {
@@ -21,7 +22,7 @@ const classNameOf = (id) => {
  * @param {{ id: string, type: string, function: string, title: string, description: string, author?: string, template?: string }} options
  * @returns {string[]} the files written, relative to dir
  */
-export function initPlugin(dir, { id, type, function: fn, title, description, author, template = 'generic' }) {
+export function initPlugin(dir, { id, type, function: fn, title, description, author, template = TEMPLATE_NAMES.includes(type) ? type : 'generic' }) {
   if (!TEMPLATE_NAMES.includes(template)) throw new Error(`Unknown template "${template}": ${TEMPLATE_NAMES.join(', ')}`);
   if (existsSync(dir) && readdirSync(dir).length) throw new Error(`${dir} is not empty`);
   const values = {
@@ -31,14 +32,15 @@ export function initPlugin(dir, { id, type, function: fn, title, description, au
     year: String(new Date().getUTCFullYear()),
   };
   // The manifest is the template's, filled in: reject bad values before writing anything.
-  const source = fileURLToPath(new URL(`${template}/`, TEMPLATES));
-  const manifest = JSON.parse(fill(readFileSync(join(source, 'volumio-plugin.json'), 'utf8'), values, true));
+  const source = (name) => fileURLToPath(new URL(`${name}/`, TEMPLATES));
+  const manifest = JSON.parse(fill(readFileSync(join(source('generic'), 'volumio-plugin.json'), 'utf8'), values, true));
   const errors = validateManifest(manifest);
   if (errors.length) throw new Error(errors.map((e) => `${e.path.slice(1) || 'manifest'} ${e.message}`).join('\n'));
   if (!REGISTRY.includes(fn)) throw new Error(`function "${fn}" is not an id from registry/functions.json`);
 
   mkdirSync(dir, { recursive: true });
-  cpSync(source, dir, { recursive: true });
+  cpSync(source('generic'), dir, { recursive: true });
+  if (template !== 'generic') cpSync(source(template), dir, { recursive: true });
   // npm drops .gitignore from published packages, so the template keeps it without the dot.
   renameSync(join(dir, 'gitignore'), join(dir, '.gitignore'));
   const written = files(dir);
