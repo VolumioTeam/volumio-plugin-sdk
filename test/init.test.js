@@ -43,6 +43,15 @@ for (const [type, own] of [['music_service', true], ['miscellanea', false]]) {
   });
 }
 
+// The template's own manifest may differ from generic's only in what the plugin does.
+test("music_service's manifest is generic's with more permissions", () => {
+  const manifest = (template) => JSON.parse(readFileSync(new URL(`../templates/${template}/volumio-plugin.json`, import.meta.url), 'utf8'));
+  const { permissions, ...rest } = manifest('music_service');
+  const { permissions: base, ...generic } = manifest('generic');
+  assert.deepEqual(rest, generic);
+  assert.deepEqual(permissions, [...base, 'browse-source', 'playback']);
+});
+
 test('init leaves no placeholder unfilled', (t) => {
   const dir = tmp(t);
   for (const file of initPlugin(dir, options)) assert.doesNotMatch(readFileSync(join(dir, file), 'utf8'), /\{\{\w+\}\}/, file);

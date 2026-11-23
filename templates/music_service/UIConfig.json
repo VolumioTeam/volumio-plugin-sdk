@@ -1,0 +1,23 @@
+{
+  "page": { "label": "TRANSLATE.PLUGIN_NAME" },
+  "sections": [
+    {
+      "id": "settings",
+      "element": "section",
+      "label": "TRANSLATE.SETTINGS",
+      "icon": "fa-cog",
+      "onSave": { "type": "controller", "endpoint": "{{type}}/{{id}}", "method": "saveSettings" },
+      "saveButton": { "label": "TRANSLATE.SAVE", "data": ["browse_name"] },
+      "content": [
+        {
+          "id": "browse_name",
+          "element": "input",
+          "type": "text",
+          "label": "TRANSLATE.BROWSE_NAME",
+          "doc": "TRANSLATE.BROWSE_NAME_DOC",
+          "value": ""
+        }
+      ]
+    }
+  ]
+}

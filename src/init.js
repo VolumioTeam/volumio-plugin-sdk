@@ -33,7 +33,8 @@ export function initPlugin(dir, { id, type, function: fn, title, description, au
   };
   // The manifest is the template's, filled in: reject bad values before writing anything.
   const source = (name) => fileURLToPath(new URL(`${name}/`, TEMPLATES));
-  const manifest = JSON.parse(fill(readFileSync(join(source('generic'), 'volumio-plugin.json'), 'utf8'), values, true));
+  const own = join(source(template), 'volumio-plugin.json');
+  const manifest = JSON.parse(fill(readFileSync(existsSync(own) ? own : join(source('generic'), 'volumio-plugin.json'), 'utf8'), values, true));
   const errors = validateManifest(manifest);
   if (errors.length) throw new Error(errors.map((e) => `${e.path.slice(1) || 'manifest'} ${e.message}`).join('\n'));
   if (!REGISTRY.includes(fn)) throw new Error(`function "${fn}" is not an id from registry/functions.json`);

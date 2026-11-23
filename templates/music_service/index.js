@@ -47,7 +47,6 @@ module.exports = class {{className}} {
 
   onStart() {
     this.strings = this.loadStrings();
-    this.logger.info(`{{id}}: ${this.config.get('greeting')}`);
     this.commandRouter.volumioAddToBrowseSources(this.browseSource());
     return libQ.resolve();
   }
@@ -57,9 +56,9 @@ module.exports = class {{className}} {
     return libQ.resolve();
   }
 
-  // The plugin's entry in Volumio's Browse page.
+  // The plugin's entry in Volumio's Browse page, under the name set in the settings page.
   browseSource() {
-    return { name: this.strings.PLUGIN_NAME, uri: ROOT, plugin_type: 'music_service', plugin_name: '{{id}}' };
+    return { name: this.config.get('browse_name'), uri: ROOT, plugin_type: 'music_service', plugin_name: '{{id}}' };
   }
 
   // Browse: the lists to show for a URI.
@@ -103,14 +102,17 @@ module.exports = class {{className}} {
     return this.commandRouter
       .i18nJson(this.file(`i18n/strings_${lang}.json`), this.file('i18n/strings_en.json'), this.file('UIConfig.json'))
       .then((uiconf) => {
-        uiconf.sections[0].content[0].value = this.config.get('greeting');
+        uiconf.sections[0].content[0].value = this.config.get('browse_name');
         return uiconf;
       });
   }
 
-  // Called by the Save button of the settings page (onSave in UIConfig.json).
+  // Called by the Save button of the settings page (onSave in UIConfig.json): renames
+  // the entry in Browse where it is. An empty name goes back to the plugin's title.
   saveSettings(data) {
-    this.config.set('greeting', data.greeting);
+    const previous = this.browseSource().name;
+    this.config.set('browse_name', String(data.browse_name ?? '').trim() || this.strings.PLUGIN_NAME);
+    this.commandRouter.volumioUpdateToBrowseSources(previous, this.browseSource());
     this.commandRouter.pushToastMessage('success', this.strings.PLUGIN_NAME, this.strings.SAVED);
     return libQ.resolve();
   }

@@ -63,7 +63,7 @@ Through `this.commandRouter`. Only these are covered by this contract:
 | `i18nJson(languageFile, englishFile, jsonFile)` | A kew promise of `jsonFile` with its `TRANSLATE.` keys translated |
 | `executeOnPlugin(type, id, method, data)` | Calls a method of another plugin; `undefined` when it is not installed |
 | `broadcastMessage(event, payload)` | Sends a message to every open Volumio UI |
-| `volumioAddToBrowseSources(source)`, `volumioRemoveToBrowseSources(name)` | A `music_service`'s entry in Browse |
+| `volumioAddToBrowseSources(source)`, `volumioRemoveToBrowseSources(name)`, `volumioUpdateToBrowseSources(name, source)` | A `music_service`'s entry in Browse: add, remove, change in place |
 | `servicePushState(state, id)` | A `music_service` that plays by itself tells Volumio what it plays |
 
 Never assign to a `commandRouter` method, and never `require` Volumio's own files.

@@ -8,7 +8,7 @@ The Volumio plugin manifest v2 (`volumio-plugin.json`), its JSON Schema, and the
 npx --package=@volumio/plugin-sdk volumio-plugin init <dir> --id <id> --type <type> --function <function> --title <title> --description <text>
 ```
 
-`init` writes a plugin that runs on today's Volumio and passes every check: `volumio-plugin.json`, `index.js` (the lifecycle methods Volumio calls, each returning a kew promise), a settings page (`UIConfig.json`, `config.json`, `i18n/`), `install.sh`, tests against a fake Volumio (`npm test`), README and LICENSE (MIT). A `music_service` plugin also gets Browse, play and search: `catalog.json` holds placeholder tracks for the developer to replace with their service, `explodeUri` hands each stream URL to MPD, which then handles pause, stop and seek. Then `init` runs `npm install`, which writes the `package-lock.json` the build needs (`--skip-install` to leave it out).
+`init` writes a plugin that runs on today's Volumio and passes every check: `volumio-plugin.json`, `index.js` (the lifecycle methods Volumio calls, each returning a kew promise), a settings page (`UIConfig.json`, `config.json`, `i18n/`), `install.sh`, tests against a fake Volumio (`npm test`), README and LICENSE (MIT). A `music_service` plugin also gets Browse, play and search: `catalog.json` holds placeholder tracks for the developer to replace with their service, `explodeUri` hands each stream URL to MPD, which then handles pause, stop and seek. Its settings page sets the name shown in Browse, and it declares the `browse-source` and `playback` permissions. Then `init` runs `npm install`, which writes the `package-lock.json` the build needs (`--skip-install` to leave it out).
 
 ### Coding agents
 
