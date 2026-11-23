@@ -1,9 +1,13 @@
 #!/usr/bin/env node
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { setTimeout as sleep } from 'node:timers/promises';
 import { parseArgs } from 'node:util';
-import { check } from '../src/check.js';
+import { check, load } from '../src/check.js';
+import { deploy, followLog } from '../src/deploy.js';
 import { initPlugin } from '../src/init.js';
 import { declaredArches, packagePlugin } from '../src/package.js';
 import { localSigner, releaseStatement, signRelease, verifyRelease } from '../src/sign.js';
@@ -13,6 +17,8 @@ const USAGE = `Usage:
   volumio-plugin check [plugin-dir ...] [--built] [--json]
   volumio-plugin package [plugin-dir] [--out <dir>]
   volumio-plugin arch [plugin-dir]
+  volumio-plugin deploy <device> [plugin-dir] [--zip <zip>]
+  volumio-plugin logs <device> [--seconds <n>]
   volumio-plugin sign <zip> --key <private.pem> --key-id <id>
   volumio-plugin verify <zip> --key <id>=<public.pem> [--key ...]
 `;
@@ -60,6 +66,14 @@ const meta = {
   workflowRef: env.GITHUB_WORKFLOW_REF,
 };
 
+// A reader that stops early (volumio-plugin logs | head) closes stdout: not a failure.
+const stdoutClosed = new Promise((resolve) => {
+  process.stdout.on('error', (e) => {
+    if (e.code !== 'EPIPE' && e.code !== 'ERR_STREAM_DESTROYED') throw e;
+    resolve();
+  });
+});
+
 const INIT_REQUIRED = ['id', 'type', 'function', 'title', 'description'];
 
 const commands = {
@@ -96,6 +110,37 @@ const commands = {
     process.stdout.write(`${result.zip}\nsha256 ${result.sha256}\n`);
     return result.ok ? 0 : 1;
   },
+  // Installs on a device of the local network, starts the plugin, prints what it logged.
+  async deploy(args) {
+    const { values, positionals: [host, dir = '.'] } = parse(args, { zip: { type: 'string' } });
+    if (!host) return usage();
+    const loaded = load(dir);
+    if (loaded.failure) throw new Error(loaded.failure.message);
+    const plugin = { id: loaded.manifest.id, type: loaded.manifest.type };
+    let zip = values.zip;
+    if (!zip) {
+      // Built here: a plugin with native modules is built for the device by scripts/build.sh, then deployed with --zip.
+      const built = packagePlugin(dir, { out: mkdtempSync(join(tmpdir(), 'volumio-deploy-')), epoch: Math.floor(Date.now() / 1000) });
+      process.stdout.write(print({ id: plugin.id, findings: built.provenance.gates.findings }));
+      if (!built.ok) return 1;
+      zip = built.zip;
+    }
+    const result = await deploy(host, plugin, zip, { progress: (line) => process.stdout.write(`${line}\n`) });
+    process.stdout.write(result.log);
+    process.stdout.write(result.started
+      ? `✔ ${plugin.id} is running on ${host}\n`
+      : `✖ ${plugin.id} did not start on ${host}: the log above says why\n`);
+    return result.started ? 0 : 1;
+  },
+  // The device's log as it is written, until Ctrl-C or --seconds.
+  async logs(args) {
+    const { values, positionals: [host] } = parse(args, { seconds: { type: 'string' } });
+    const seconds = values.seconds === undefined ? undefined : Number(values.seconds);
+    if (!host || (seconds !== undefined && !(seconds > 0))) return usage();
+    const until = Promise.race([seconds ? sleep(seconds * 1000) : new Promise((resolve) => process.once('SIGINT', resolve)), stdoutClosed]);
+    await followLog(host, (text) => process.stdout.write(text), until);
+    return 0;
+  },
   arch(args) {
     process.stdout.write(`${JSON.stringify(declaredArches(parse(args).positionals[0] ?? '.'))}\n`);
     return 0;
@@ -128,7 +173,7 @@ if (!commands[command]) {
   process.exitCode = usage();
 } else {
   try {
-    process.exitCode = commands[command](args);
+    process.exitCode = await commands[command](args);
   } catch (e) {
     process.stderr.write(`${e instanceof Error ? e.message : String(e)}\n`);
     process.exitCode = String(e?.code).startsWith('ERR_PARSE_ARGS') ? usage() : 1;
