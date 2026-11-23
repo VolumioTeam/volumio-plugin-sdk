@@ -25,7 +25,7 @@ const fakeDevice = (handlers) => {
   };
   return { socket, emitted, fire };
 };
-const listing = (active) => (data, fire) => fire('pushInstalledPlugins', [{ name: 'my_radio', category: 'music_service', active }]);
+const listing = (active, enabled = true) => (data, fire) => fire('pushInstalledPlugins', [{ name: 'my_radio', category: 'music_service', enabled, active }]);
 
 test('socket.io v2 frames: open, connect, events with or without an ack id, payloads that are not JSON', () => {
   assert.deepEqual(parse('0{"sid":"x","pingInterval":25000,"pingTimeout":60000}'), { type: 'open', pingInterval: 25000 });
@@ -99,6 +99,14 @@ test('after a reboot, a plugin that fails to start does not hold deploy back', a
   const back = fakeDevice({ getInstalledPlugins: listing(false) });
   const connectTo = async () => back.socket;
   assert.equal(await reboot(device.socket, 'volumio.local', plugin, { connectTo, timeouts: { ...fast, start: 50 }, retry: 5 }), back.socket);
+});
+
+test('after a reboot, a plugin installed but not enabled is not waited for', async () => {
+  const device = fakeDevice({ reboot: (d, fire) => fire('disconnect') });
+  const back = fakeDevice({ getInstalledPlugins: listing(false, false) });
+  const started = Date.now();
+  await reboot(device.socket, 'volumio.local', plugin, { connectTo: async () => back.socket, timeouts: { ...fast, start: 5000 }, retry: 5 });
+  assert.ok(Date.now() - started < 1000);
 });
 
 test('a device that does not answer leaves nothing running', async () => {

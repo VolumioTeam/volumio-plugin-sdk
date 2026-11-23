@@ -11,8 +11,8 @@ const TIMEOUTS = {
   answer: 30000,
   // install.sh may apt-get install packages.
   install: 10 * 60000,
-  // Volumio gives up on a slow onStart after 30 seconds.
-  start: 60000,
+  // At boot Volumio stops waiting for a plugin's onStart after 30 seconds.
+  start: 35000,
   reboot: 5 * 60000,
 };
 // The device comes back from a reboot without telling anyone: ask again at this pace.
@@ -111,8 +111,11 @@ export async function reboot(socket, host, plugin, { connectTo = connect, timeou
   // The backend answers before it has started every plugin. Let the boot start this one, or fail
   // to, before deploy restarts it: a plugin that fails in onStart never shows as running.
   const startBy = Date.now() + timeouts.start;
-  while (!(await installedPlugin(back, plugin))?.active && Date.now() < startBy) await sleep(retry);
-  return back;
+  for (;;) {
+    const found = await installedPlugin(back, plugin);
+    if (!found?.enabled || found.active || Date.now() > startBy) return back;
+    await sleep(retry);
+  }
 }
 
 /**
@@ -139,8 +142,9 @@ export async function startWithLog(socket, plugin, { restart, timeouts = TIMEOUT
 }
 
 /**
- * Installs the zip of plugin on host and starts it. An update reboots the device: Volumio keeps
- * running the code it loaded first until its backend restarts.
+ * Installs the zip of plugin on host, reboots the device and starts the plugin. Volumio keeps
+ * running the code of a plugin it loaded once until its backend restarts, through updates and
+ * even an uninstall: only a reboot makes sure the new code runs.
  * @param {string} host
  * @param {{ id: string, type: string }} plugin
  * @param {string} zip
@@ -154,12 +158,11 @@ export async function deploy(host, plugin, zip, { connectTo = connect, progress 
     server = await serveFile(zip, await localAddressFor(host));
     progress(`Installing ${plugin.id} on ${host}`);
     const { updated } = await install(socket, plugin, server.url).finally(() => server.close());
-    if (updated) {
-      progress(`Rebooting ${host} to load the new code: this takes a minute or two`);
-      socket = await reboot(socket, host, plugin, { connectTo });
-    }
+    progress(`Rebooting ${host} to load the new code: this takes a minute or two`);
+    socket = await reboot(socket, host, plugin, { connectTo });
     progress(`Starting ${plugin.id}`);
-    return { updated, ...(await startWithLog(socket, plugin, { restart: updated })) };
+    const running = Boolean((await installedPlugin(socket, plugin))?.active);
+    return { updated, ...(await startWithLog(socket, plugin, { restart: running })) };
   } finally {
     server?.close();
     socket.close();

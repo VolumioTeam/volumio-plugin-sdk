@@ -49,7 +49,7 @@ npx --package=@volumio/plugin-sdk volumio-plugin logs <device> [--seconds <n>]
 
 `deploy` installs a plugin on a Volumio of the local network and starts it, as the web UI would: no SSH. It builds the package as `package` does (a plugin with native modules is built for the device with `scripts/build.sh` and passed with `--zip`), serves it from this machine at an unguessable URL on the interface that reaches the device, and asks the device to install it from there. The device's live log is on while the plugin starts, and `deploy` prints it, then exits 1 if the plugin did not start.
 
-A plugin already on the device is updated, and the device reboots: Volumio keeps running the code it loaded first until its backend restarts. `logs` prints the device's log as it is written, until Ctrl-C or `--seconds`. Both need Node 22 or later, for its built-in WebSocket; the rest of the CLI runs on Node 20.
+A plugin already on the device is updated, keeping its settings. Then the device reboots: Volumio keeps running the code of a plugin it loaded once until its backend restarts, through updates and even an uninstall. `logs` prints the device's log as it is written, until Ctrl-C or `--seconds`. Both need Node 22 or later, for its built-in WebSocket; the rest of the CLI runs on Node 20.
 
 ## Function registry
 
