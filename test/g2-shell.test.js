@@ -71,3 +71,30 @@ test('only the arguments of the print command are text', () => {
   assert.deepEqual(rules(safe("echo ready; bash -c 'apt-get install foo'\necho \"`apt-get install foo`\"")), ['G2.shell.package-manager:3', 'G2.shell.package-manager:4']);
   assert.deepEqual(rules(safe("echo 'apt-get install foo' && echo done")), []);
 });
+
+test('apt-get install of the packages declared in system.apt passes', () => {
+  const apt = ['libfoo', 'bar'];
+  const run = (body) => shellFindings(safe(body), 'install.sh', apt).map((f) => `${f.line}:${f.message}`);
+  assert.deepEqual(run('apt-get update\nDEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends libfoo bar'), []);
+  assert.deepEqual(run('sudo apt-get -o Dpkg::Options::=--force-confold install -y libfoo=1.2 bar:arm64'), []);
+  assert.deepEqual(run('apt-get install -y \\\n  libfoo \\\n  bar'), []);
+  assert.deepEqual(run('apt-get install -y libfoo && apt install bar'), []);
+});
+
+test('apt-get install of anything else names what is missing', () => {
+  const run = (body) => shellFindings(safe(body), 'install.sh', ['libfoo']).map((f) => `${f.line}:${f.message}`);
+  assert.deepEqual(run('apt-get install -y libfoo baz qux'), ['3:install.sh installs baz, qux, not declared in system.apt']);
+  assert.deepEqual(run('apt-get install -y \\\n  libfoo \\\n  baz'), ['3:install.sh installs baz, not declared in system.apt']);
+  assert.deepEqual(run('echo start && \\\n  apt-get install baz'), ['4:install.sh installs baz, not declared in system.apt']);
+  assert.deepEqual(run('apt-get install -y $PACKAGES\napt-get install -f\nbash -c "apt-get install libfoo"'), [
+    '3:install.sh installs APT packages it does not name',
+    '4:install.sh installs APT packages it does not name',
+    '5:install.sh installs APT packages it does not name',
+  ]);
+  assert.deepEqual(run('apt-get install ./local.deb'), ['3:install.sh installs APT packages it does not name']);
+});
+
+test('npm, pip and dpkg stay forbidden whatever system.apt declares', () => {
+  const run = (body) => shellFindings(safe(body), 'install.sh', ['libfoo']).map((f) => f.rule);
+  assert.deepEqual(run('npm install\npip3 install libfoo\ndpkg -i libfoo.deb'), Array(3).fill('G2.shell.package-manager'));
+});
