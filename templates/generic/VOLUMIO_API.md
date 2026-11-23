@@ -22,10 +22,12 @@ Every method Volumio calls returns a kew promise (`const libQ = require('kew')`)
   ```js
   onStart() {
     const defer = libQ.defer();
-    this.connect().then(defer.resolve, defer.reject);
+    this.connect().then((value) => defer.resolve(value), (error) => defer.reject(error));
     return defer.promise;
   }
   ```
+
+  Call `defer.resolve` and `defer.reject` on `defer`, as above: passed on their own, as `.then(defer.resolve)`, they lose it and the promise never settles.
 
 - Wait on a promise or an event, not on a timer. A timer or child process the plugin starts, `onStop` stops.
 
@@ -86,4 +88,4 @@ Never assign to a `commandRouter` method, and never `require` Volumio's own file
 
 - `search({ value })` resolves `null` when nothing matches, or one list `{ title, availableListViews, items }` with items as in Browse.
 - Never reject and never throw: Volumio searches every source together, and one failure can lose the whole result. On an error, log it and resolve `null`.
-- Volumio stops waiting after 5 seconds.
+- Searching every source, Volumio stops waiting for a plugin after 5 seconds. Searching only this plugin, from its own Browse page, it waits as long as the plugin takes: put a time limit on every request `search` makes.
