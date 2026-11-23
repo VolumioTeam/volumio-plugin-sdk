@@ -35,7 +35,7 @@
       "required": ["volumio", "api"],
       "properties": {
         "volumio": { "description": "semver range", "type": "string", "minLength": 1 },
-        "api": { "const": "2" }
+        "api": { "description": "The plugin API the code is written for. 1: the one Volumio runs today (kew promises, commandRouter). 2 is kept for framework v2", "const": "1" }
       }
     },
     "arch": {

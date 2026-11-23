@@ -55,7 +55,7 @@ test('an id starting with a digit still gives a valid class name', (t) => {
 
 test('the package.json Volumio reads comes from the manifest', () => {
   const manifest = { id: 'my_radio', version: '1.2.0', type: 'music_service', title: 'My radio', description: 'Plays', icon: 'fa-music',
-    engines: { volumio: '>=4.0.0 <5.0.0', api: '2' }, arch: ['armhf', 'amd64'], license: 'MIT' };
+    engines: { volumio: '>=4.0.0 <5.0.0', api: '1' }, arch: ['armhf', 'amd64'], license: 'MIT' };
   assert.deepEqual(toV1(manifest, { private: true, main: 'index.js', engines: { node: '>=20' }, dependencies: { kew: '^0.7.0' } }), {
     private: true, main: 'index.js', dependencies: { kew: '^0.7.0' },
     name: 'my_radio', version: '1.2.0', description: 'Plays', license: 'MIT',
