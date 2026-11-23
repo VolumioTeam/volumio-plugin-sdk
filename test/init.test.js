@@ -32,7 +32,9 @@ test('its own tests pass against the fake Volumio', (t) => {
   const dir = tmp(t);
   initPlugin(dir, options);
   assert.equal(spawnSync('npm', ['install', '--no-audit', '--no-fund'], { cwd: dir }).status, 0);
-  const result = spawnSync('npm', ['test'], { cwd: dir, encoding: 'utf8' });
+  // Without NODE_TEST_CONTEXT, which would make the plugin's runner report to this one and exit 0.
+  const { NODE_TEST_CONTEXT, ...env } = process.env;
+  const result = spawnSync('npm', ['test'], { cwd: dir, encoding: 'utf8', env });
   assert.equal(result.status, 0, result.stdout + result.stderr);
 });
 
