@@ -27,6 +27,15 @@ Both must pass before you say the work is done. `check` runs the gates the store
 
 Add a test in `test/` for each behaviour you add. When the plugin calls a part of Volumio the fake does not have, add it to `test/volumio.js`, following `VOLUMIO_API.md`.
 
+## Try it on a Volumio
+
+```bash
+npx --package=@volumio/plugin-sdk volumio-plugin deploy <device> .
+npx --package=@volumio/plugin-sdk volumio-plugin logs <device> --seconds 30
+```
+
+`<device>` is the address of a Volumio on the same network, such as `volumio.local` or `192.168.1.20`: ask the person for it. `deploy` builds the plugin, installs it, starts it, and prints what the device logged meanwhile; read that log when something fails. `deploy` reboots the device to load the new code, which stops the music for a minute or two: ask the person before the first deploy. `logs` prints the device's log as it is written. Both need Node 22 or later.
+
 ## Rules the gates enforce
 
 - Log with `this.logger`, never `console.log`.
