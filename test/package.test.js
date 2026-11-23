@@ -29,7 +29,7 @@ const manifest = {
   function: 'radio-paradise',
   title: 'Example',
   description: 'Example plugin',
-  engines: { volumio: '>=4.0.0 <5.0.0', api: '2' },
+  engines: { volumio: '>=4.0.0 <5.0.0', api: '1' },
   arch: ['armhf', 'amd64'],
   permissions: [],
   license: 'MIT',

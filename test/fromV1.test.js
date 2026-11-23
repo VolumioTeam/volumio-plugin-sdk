@@ -31,7 +31,7 @@ test('maps the v1 fields that have a v2 home', () => {
     icon: 'fa-music',
     changelog: '',
     bootPriority: 10,
-    engines: { volumio: '>=4', api: '2' },
+    engines: { volumio: '>=4', api: '1' },
     arch: ['armhf', 'amd64'],
     license: 'ISC',
   });
@@ -47,7 +47,7 @@ test('lists the v1 fields with no v2 home', () => {
 
 test('leaves missing v1 fields out instead of inventing them', () => {
   const { manifest } = fromV1({ name: 'x_y', version: '1.0.0', volumio_info: {} });
-  assert.deepEqual(manifest, { id: 'x_y', version: '1.0.0', engines: { api: '2' } });
+  assert.deepEqual(manifest, { id: 'x_y', version: '1.0.0', engines: { api: '1' } });
 });
 
 test('does not mutate its input', () => {

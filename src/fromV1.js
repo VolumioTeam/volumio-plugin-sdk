@@ -19,7 +19,7 @@ export function fromV1(pkg) {
     version: pkg.version,
     type: info.plugin_type,
     ...Object.fromEntries(Object.entries(RENAMED).map(([from, to]) => [to, info[from]])),
-    engines: defined({ volumio: pkg.engines?.volumio, api: '2' }),
+    engines: defined({ volumio: pkg.engines?.volumio, api: '1' }),
     arch: Array.isArray(info.architectures) ? [...info.architectures] : info.architectures,
     license: pkg.license,
   });
