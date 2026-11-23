@@ -1,0 +1,8 @@
+{
+  "PLUGIN_NAME": "{{title}}",
+  "SETTINGS": "Settings",
+  "SAVE": "Save",
+  "BROWSE_NAME": "Name in Browse",
+  "BROWSE_NAME_DOC": "The name of this source on Volumio's Browse page",
+  "SAVED": "Settings saved"
+}

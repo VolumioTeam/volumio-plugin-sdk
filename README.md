@@ -8,7 +8,16 @@ The Volumio plugin manifest v2 (`volumio-plugin.json`), its JSON Schema, and the
 npx --package=@volumio/plugin-sdk volumio-plugin init <dir> --id <id> --type <type> --function <function> --title <title> --description <text>
 ```
 
-`init` writes a plugin that runs on today's Volumio and passes every check: `volumio-plugin.json`, `index.js` (the lifecycle methods Volumio calls, each returning a kew promise), a settings page (`UIConfig.json`, `config.json`, `i18n/`), `install.sh`, tests against a fake Volumio (`npm test`), README and LICENSE (MIT). A `music_service` plugin also gets Browse, play and search: `catalog.json` holds placeholder tracks for the developer to replace with their service, `explodeUri` hands each stream URL to MPD, which then handles pause, stop and seek. Then `init` runs `npm install`, which writes the `package-lock.json` the build needs (`--skip-install` to leave it out).
+`init` writes a plugin that runs on today's Volumio and passes every check: `volumio-plugin.json`, `index.js` (the lifecycle methods Volumio calls, each returning a kew promise), a settings page (`UIConfig.json`, `config.json`, `i18n/`), `install.sh`, tests against a fake Volumio (`npm test`), README and LICENSE (MIT). A `music_service` plugin also gets Browse, play and search: `catalog.json` holds placeholder tracks for the developer to replace with their service, `explodeUri` hands each stream URL to MPD, which then handles pause, stop and seek. Its settings page sets the name shown in Browse, and it declares the `browse-source` and `playback` permissions. Then `init` runs `npm install`, which writes the `package-lock.json` the build needs (`--skip-install` to leave it out).
+
+### Coding agents
+
+Every new plugin carries instructions for coding agents, so that someone who does not write code can build a plugin by asking one:
+
+- `AGENTS.md`: the files, the commands to run after each change (`npm test`, `check`), the rules the gates enforce, what to ask the person before doing. Codex, Cursor and Copilot read it; `CLAUDE.md` loads it for Claude Code.
+- `VOLUMIO_API.md`: the plugin API Volumio runs today (`engines.api` `"1"`): the lifecycle, kew promises, settings, the calls into Volumio, and Browse, play and search for a `music_service`.
+
+`AGENTS.md` stays the same across plugin APIs. `VOLUMIO_API.md` is the one file that changes with the API: a test fails when the schema's `engines.api` and the file's title disagree.
 
 The developer edits only `volumio-plugin.json`: `package` writes `name`, `version`, `description`, `license`, `engines.volumio` and `volumio_info` into the `package.json` that ships, which is what Volumio reads today. `engines.api` is `"1"`: the code follows the plugin API Volumio runs today; `"2"` is kept for framework v2.
 

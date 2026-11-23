@@ -19,6 +19,7 @@ exports.fakeVolumio = () => {
     i18nJson: (dictionary, fallback, file) => libQ.resolve(JSON.parse(fs.readFileSync(file, 'utf8'))),
     volumioAddToBrowseSources: (source) => browseSources.push(source),
     volumioRemoveToBrowseSources: (name) => browseSources.splice(browseSources.findIndex((s) => s.name === name), 1),
+    volumioUpdateToBrowseSources: (name, source) => browseSources.forEach((s, i) => { if (s.name === name) browseSources[i] = source; }),
   };
   const context = { coreCommand, logger: { info: (m) => logs.push(m), warn: () => {}, error: () => {} } };
   return { context, toasts, logs, browseSources };

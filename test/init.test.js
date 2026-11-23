@@ -29,6 +29,7 @@ for (const [type, own] of [['music_service', true], ['miscellanea', false]]) {
     assert.match(readFileSync(join(dir, 'index.js'), 'utf8'), /class MyRadio \{/);
     assert.ok(existsSync(join(dir, '.gitignore')));
     assert.equal(existsSync(join(dir, 'catalog.json')), own);
+    for (const file of ['AGENTS.md', 'CLAUDE.md', 'VOLUMIO_API.md']) assert.ok(existsSync(join(dir, file)), file);
   });
 
   test(`a new ${type} plugin's own tests pass against the fake Volumio`, (t) => {
@@ -41,6 +42,26 @@ for (const [type, own] of [['music_service', true], ['miscellanea', false]]) {
     assert.equal(result.status, 0, result.stdout + result.stderr);
   });
 }
+
+// The template's own manifest may differ from generic's only in what the plugin does.
+test("music_service's manifest is generic's with more permissions", () => {
+  const manifest = (template) => JSON.parse(readFileSync(new URL(`../templates/${template}/volumio-plugin.json`, import.meta.url), 'utf8'));
+  const { permissions, ...rest } = manifest('music_service');
+  const { permissions: base, ...generic } = manifest('generic');
+  assert.deepEqual(rest, generic);
+  assert.deepEqual(permissions, [...base, 'browse-source', 'playback']);
+});
+
+test('init leaves no placeholder unfilled', (t) => {
+  const dir = tmp(t);
+  for (const file of initPlugin(dir, options)) assert.doesNotMatch(readFileSync(join(dir, file), 'utf8'), /\{\{\w+\}\}/, file);
+});
+
+// VOLUMIO_API.md is the one file that changes with the plugin API: a new api in the schema needs a new one.
+test('VOLUMIO_API.md describes the plugin API the schema accepts', () => {
+  const api = JSON.parse(readFileSync(new URL('../schema/manifest.schema.json', import.meta.url), 'utf8')).properties.engines.properties.api.const;
+  assert.match(readFileSync(new URL('../templates/generic/VOLUMIO_API.md', import.meta.url), 'utf8'), new RegExp(`^# Volumio plugin API ${api}\n`));
+});
 
 test('bad values and a folder in use write nothing', (t) => {
   const dir = tmp(t);
