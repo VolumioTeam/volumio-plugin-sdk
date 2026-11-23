@@ -79,6 +79,17 @@ G4 installs and starts the plugin in a container built from a real Volumio relea
 scripts/sandbox-image.sh [tag]   # default tag volumio-sandbox:<version>-amd64
 ```
 
+`volumio-plugin sandbox <zip>` installs the amd64 package in a fresh container as the backend does (files in `/data/plugins/<type>/<id>`, then `sudo sh install.sh` as `volumio`, ten minutes at most), then compares `docker diff` and the new apt packages with the manifest. Errors for v2 plugins, warnings for v1:
+
+| Rule | Checks |
+| --- | --- |
+| `G4.install` | `install.sh` exists, exits 0 and ends in time |
+| `G4.apt` | Every package installed is in `system.apt` |
+| `G4.service` | Every systemd unit added or changed is in `system.services` |
+| `G4.write` | Every path written outside the plugin's own folders is in `system.writes` or belongs to a declared package |
+
+Starting the plugin and the hosts it contacts (`network`) are not checked yet: they need the backend running in the container.
+
 ## Signing
 
 The store signs each release it accepts: `<zip>.sig` is a [DSSE](https://github.com/secure-systems-lab/dsse) envelope whose payload (`volumio.plugin.release/v1`) binds the zip's sha256 to the plugin id, version, architecture and source commit, signed with Ed25519. The device trusts two keys, the active one and the next, so rotating the key needs no device update. `src/sign.js` (`@volumio/plugin-sdk/sign`) uses only Node's `crypto`; the device verifier follows it and is tested against envelopes it signs. Key ids use letters, digits, dot, dash and underscore.

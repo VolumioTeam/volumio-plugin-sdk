@@ -5,6 +5,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
 import { check } from '../src/check.js';
 import { declaredArches, packagePlugin } from '../src/package.js';
+import { sandboxInstall, SANDBOX_IMAGE } from '../src/sandbox.js';
 import { localSigner, releaseStatement, signRelease, verifyRelease } from '../src/sign.js';
 
 const USAGE = `Usage:
@@ -13,6 +14,7 @@ const USAGE = `Usage:
   volumio-plugin arch [plugin-dir]
   volumio-plugin sign <zip> --key <private.pem> --key-id <id>
   volumio-plugin verify <zip> --key <id>=<public.pem> [--key ...]
+  volumio-plugin sandbox <zip> [--image <tag>] [--json]
 `;
 
 const print = (result) => {
@@ -98,6 +100,15 @@ const commands = {
     process.stdout.write(`✔ ${statement.id} ${statement.version} ${statement.arch} signed by a trusted key\n`);
     return 0;
   },
+};
+
+// G4: installs the amd64 package in the sandbox image (scripts/sandbox-image.sh).
+commands.sandbox = (args) => {
+  const { values, positionals: [zip] } = parse(args, { image: { type: 'string', default: SANDBOX_IMAGE }, json: { type: 'boolean' } });
+  if (!zip) return usage();
+  const result = sandboxInstall(zip, { image: values.image });
+  process.stdout.write(values.json ? `${JSON.stringify(result, null, 2)}\n` : print({ dir: zip, ...result }));
+  return result.findings.some((f) => f.severity === 'error') ? 1 : 0;
 };
 
 const [command, ...args] = process.argv.slice(2);
