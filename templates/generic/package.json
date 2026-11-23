@@ -1,0 +1,17 @@
+{
+  "private": true,
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "kew": "^0.7.0"
+  },
+  "devDependencies": {
+    "v-conf": "^1.4.3"
+  }
+}

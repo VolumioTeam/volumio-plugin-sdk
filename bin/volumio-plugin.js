@@ -4,10 +4,12 @@ import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
 import { check } from '../src/check.js';
+import { initPlugin } from '../src/init.js';
 import { declaredArches, packagePlugin } from '../src/package.js';
 import { localSigner, releaseStatement, signRelease, verifyRelease } from '../src/sign.js';
 
 const USAGE = `Usage:
+  volumio-plugin init <dir> --id <id> --type <type> --function <function> --title <title> --description <text> [--author <name>] [--skip-install]
   volumio-plugin check [plugin-dir ...] [--built] [--json]
   volumio-plugin package [plugin-dir] [--out <dir>]
   volumio-plugin arch [plugin-dir]
@@ -58,7 +60,27 @@ const meta = {
   workflowRef: env.GITHUB_WORKFLOW_REF,
 };
 
+const INIT_REQUIRED = ['id', 'type', 'function', 'title', 'description'];
+
 const commands = {
+  init(args) {
+    const options = Object.fromEntries([...INIT_REQUIRED, 'author'].map((k) => [k, { type: 'string' }]));
+    const { values, positionals: [dir] } = parse(args, { ...options, 'skip-install': { type: 'boolean' } });
+    const missing = INIT_REQUIRED.filter((k) => !values[k]);
+    if (!dir || missing.length) {
+      if (missing.length) process.stderr.write(`Missing ${missing.map((k) => `--${k}`).join(', ')}. --function is an id from registry/functions.json\n`);
+      return usage();
+    }
+    const written = initPlugin(dir, values);
+    process.stdout.write(written.map((f) => `  ${f}\n`).join(''));
+    if (!values['skip-install']) {
+      // Writes package-lock.json, which the build needs.
+      const npm = spawnSync('npm', ['install', '--no-audit', '--no-fund'], { cwd: dir, stdio: 'inherit' });
+      if (npm.status !== 0) return 1;
+    }
+    process.stdout.write(`✔ ${values.id} in ${dir}: edit volumio-plugin.json and index.js, then npm test and volumio-plugin check\n`);
+    return 0;
+  },
   check(args) {
     const { values, positionals: dirs } = parse(args, { built: { type: 'boolean' }, json: { type: 'boolean' } });
     const results = (dirs.length ? dirs : ['.']).map((dir) => check(dir, { built: values.built }));

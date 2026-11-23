@@ -1,0 +1,13 @@
+{
+  "id": "{{id}}",
+  "version": "0.1.0",
+  "type": "{{type}}",
+  "function": "{{function}}",
+  "title": "{{title}}",
+  "description": "{{description}}",
+  "icon": "fa-puzzle-piece",
+  "engines": { "volumio": ">=4.0.0 <5.0.0", "api": "2" },
+  "arch": ["armhf", "amd64"],
+  "permissions": ["ui:toast"],
+  "license": "MIT"
+}

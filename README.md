@@ -2,6 +2,18 @@
 
 The Volumio plugin manifest v2 (`volumio-plugin.json`), its JSON Schema, and the `volumio-plugin` CLI.
 
+## A new plugin
+
+```bash
+npx volumio-plugin init <dir> --id <id> --type <type> --function <function> --title <title> --description <text>
+```
+
+`init` writes a plugin that runs on today's Volumio and passes every check: `volumio-plugin.json`, `index.js` (the lifecycle methods Volumio calls, each returning a kew promise), a settings page (`UIConfig.json`, `config.json`, `i18n/`), `install.sh`, tests against a fake Volumio (`npm test`), README and LICENSE (MIT). Then it runs `npm install`, which writes the `package-lock.json` the build needs (`--skip-install` to leave it out).
+
+The developer edits only `volumio-plugin.json`: `package` writes `name`, `version`, `description`, `license`, `engines.volumio` and `volumio_info` into the `package.json` that ships, which is what Volumio reads today.
+
+## Checks
+
 ```bash
 npx volumio-plugin check [plugin-dir ...] [--built] [--json]
 ```
@@ -14,6 +26,7 @@ npx volumio-plugin check [plugin-dir ...] [--built] [--json]
 | `G1.function` | `function` is in `registry/functions.json`, the closed registry moderators curate |
 | `G1.engines` | `engines.volumio` is a semver range |
 | `G1.file.readme` | A README exists |
+| `G1.package-json` | A v2 source's `package.json` sets no `name`, `version` or `volumio_info`: `package` generates them from the manifest |
 | `G1.file.license` | A LICENSE file exists; a warning for v1 plugins, which state the licence in `package.json` |
 | `G1.main` (`--built`) | `package.json` `main` is `index.js`, as the crypter needs |
 | `G1.file.i18n` (`--built`) | `i18n/strings_en.json` exists |

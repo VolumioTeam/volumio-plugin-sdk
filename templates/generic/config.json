@@ -1,0 +1,3 @@
+{
+  "greeting": { "type": "string", "value": "Hello from Volumio" }
+}
