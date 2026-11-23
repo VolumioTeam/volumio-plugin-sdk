@@ -19,7 +19,7 @@ export function fromV1(pkg) {
     version: pkg.version,
     type: info.plugin_type,
     ...Object.fromEntries(Object.entries(RENAMED).map(([from, to]) => [to, info[from]])),
-    engines: defined({ volumio: pkg.engines?.volumio, api: '2' }),
+    engines: defined({ volumio: pkg.engines?.volumio, api: '1' }),
     arch: Array.isArray(info.architectures) ? [...info.architectures] : info.architectures,
     license: pkg.license,
   });
@@ -27,5 +27,28 @@ export function fromV1(pkg) {
     manifest,
     todo: [...V2_ONLY],
     dropped: Object.keys(info).filter((k) => !MAPPED.has(k)),
+  };
+}
+
+/**
+ * The package.json Volumio reads today, from a v2 manifest: the manifest is the single source,
+ * so name, version, description, licence, engines.volumio and volumio_info are overwritten.
+ * @param {Record<string, any>} manifest
+ * @param {Record<string, any>} pkg the plugin's own package.json (main, dependencies, engines.node)
+ */
+export function toV1(manifest, pkg = {}) {
+  return {
+    ...pkg,
+    name: manifest.id,
+    version: manifest.version,
+    description: manifest.description,
+    license: manifest.license,
+    engines: { ...pkg.engines, volumio: manifest.engines?.volumio },
+    volumio_info: defined({
+      plugin_type: manifest.type,
+      ...Object.fromEntries(Object.entries(RENAMED).map(([v1, v2]) => [v1, manifest[v2]])),
+      architectures: manifest.arch,
+      os: ['bookworm'],
+    }),
   };
 }

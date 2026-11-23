@@ -1,0 +1,8 @@
+{
+  "PLUGIN_NAME": "{{title}}",
+  "SETTINGS": "Settings",
+  "SAVE": "Save",
+  "GREETING": "Greeting",
+  "GREETING_DOC": "Written to the log when the plugin starts",
+  "SAVED": "Settings saved"
+}

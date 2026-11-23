@@ -11,7 +11,7 @@ const draft = () => ({
   description: 'Listen to Radio Paradise',
   icon: 'fa-music',
   bootPriority: 10,
-  engines: { volumio: '>=4.0.0 <5.0.0', api: '2' },
+  engines: { volumio: '>=4.0.0 <5.0.0', api: '1' },
   arch: ['armhf', 'amd64', 'arm64'],
   permissions: ['playback', 'browse-source', 'ui:toast'],
   network: ['api.radioparadise.com'],
@@ -43,8 +43,8 @@ test('accepts a call permission on another plugin', () => {
   assert.deepEqual(validateManifest({ ...draft(), permissions: ['plugin:spop.getState'] }), []);
 });
 
-test('rejects api other than 2', () => {
-  assert.deepEqual(paths(validateManifest({ ...draft(), engines: { volumio: '>=4', api: '1' } })), ['/engines/api']);
+test('rejects api 2 until framework v2 exists', () => {
+  assert.deepEqual(paths(validateManifest({ ...draft(), engines: { volumio: '>=4', api: '2' } })), ['/engines/api']);
 });
 
 test('reports a missing required field by its name', () => {
