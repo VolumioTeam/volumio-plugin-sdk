@@ -96,20 +96,23 @@ export async function install(socket, plugin, url, timeouts = TIMEOUTS) {
   return { updated };
 }
 
-/** Reboots the device and reconnects once its backend answers again, with the plugin running. */
+/** Reboots the device and reconnects once its backend answers again. */
 export async function reboot(socket, host, plugin, { connectTo = connect, timeouts = TIMEOUTS, retry = RETRY_MS } = {}) {
   await ask(socket, ['reboot'], ['disconnect', () => true, timeouts.reboot]);
   const deadline = Date.now() + timeouts.reboot;
+  let back;
   for (;;) {
-    const back = await connectTo(host).catch(() => undefined);
-    if (back) {
-      // The backend answers before it has started every plugin.
-      if ((await installedPlugin(back, plugin).catch(() => undefined))?.active) return back;
-      back.close();
-    }
-    if (Date.now() > deadline) throw new Error(`${host} did not come back with ${plugin.id} running within ${timeouts.reboot / 1000}s`);
+    back = await connectTo(host).catch(() => undefined);
+    if (back && (await installedPlugin(back, plugin).then(() => true, () => false))) break;
+    back?.close();
+    if (Date.now() > deadline) throw new Error(`${host} did not come back within ${timeouts.reboot / 1000}s`);
     await sleep(retry);
   }
+  // The backend answers before it has started every plugin. Let the boot start this one, or fail
+  // to, before deploy restarts it: a plugin that fails in onStart never shows as running.
+  const startBy = Date.now() + timeouts.start;
+  while (!(await installedPlugin(back, plugin))?.active && Date.now() < startBy) await sleep(retry);
+  return back;
 }
 
 /**
@@ -145,9 +148,10 @@ export async function startWithLog(socket, plugin, { restart, timeouts = TIMEOUT
  * @returns {Promise<{ updated: boolean, started: boolean, log: string }>}
  */
 export async function deploy(host, plugin, zip, { connectTo = connect, progress = () => {} } = {}) {
-  const server = await serveFile(zip, await localAddressFor(host));
   let socket = await connectTo(host);
+  let server;
   try {
+    server = await serveFile(zip, await localAddressFor(host));
     progress(`Installing ${plugin.id} on ${host}`);
     const { updated } = await install(socket, plugin, server.url).finally(() => server.close());
     if (updated) {
@@ -157,6 +161,7 @@ export async function deploy(host, plugin, zip, { connectTo = connect, progress 
     progress(`Starting ${plugin.id}`);
     return { updated, ...(await startWithLog(socket, plugin, { restart: updated })) };
   } finally {
+    server?.close();
     socket.close();
   }
 }

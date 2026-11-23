@@ -4,7 +4,7 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { encode, parse } from '../src/socketio.js';
-import { install, reboot, serveFile, startWithLog } from '../src/deploy.js';
+import { deploy, install, reboot, serveFile, startWithLog } from '../src/deploy.js';
 
 const plugin = { id: 'my_radio', type: 'music_service' };
 const fast = { answer: 200, install: 200, start: 200, reboot: 200 };
@@ -81,15 +81,29 @@ test('a plugin whose onStart never resolves is reported as not started', async (
   assert.deepEqual(device.emitted.at(-1), ['callMethod', { endpoint: 'system_controller/system', method: 'enableLiveLog', data: 'false' }]);
 });
 
-test('after a reboot, deploy reconnects only once the plugin runs again', async () => {
+test('after a reboot, deploy reconnects once the backend answers, and lets the boot start the plugin', async () => {
   const device = fakeDevice({ reboot: (d, fire) => fire('disconnect') });
-  // Refused while it boots, then up with the plugin still starting, then up with it running.
-  const [starting, running] = [false, true].map((active) => fakeDevice({ getInstalledPlugins: listing(active) }));
-  const answers = [undefined, starting, running];
+  // Refused while the device boots, then up with the plugin still starting, then running.
+  let active = false;
+  const back = fakeDevice({ getInstalledPlugins: (d, fire) => listing(active)(d, fire) });
+  const answers = [undefined, back];
   const connectTo = async () => answers.shift()?.socket ?? Promise.reject(new Error('ECONNREFUSED'));
-  const back = await reboot(device.socket, 'volumio.local', plugin, { connectTo, timeouts: { ...fast, reboot: 2000 }, retry: 0 });
-  assert.equal(back, running.socket);
-  assert.deepEqual(starting.emitted.at(-1), ['close']);
+  const asked = back.emitted;
+  setTimeout(() => (active = true), 20);
+  assert.equal(await reboot(device.socket, 'volumio.local', plugin, { connectTo, timeouts: { ...fast, reboot: 2000, start: 2000 }, retry: 5 }), back.socket);
+  assert.ok(asked.length > 2, 'asked again until the plugin ran');
+});
+
+test('after a reboot, a plugin that fails to start does not hold deploy back', async () => {
+  const device = fakeDevice({ reboot: (d, fire) => fire('disconnect') });
+  const back = fakeDevice({ getInstalledPlugins: listing(false) });
+  const connectTo = async () => back.socket;
+  assert.equal(await reboot(device.socket, 'volumio.local', plugin, { connectTo, timeouts: { ...fast, start: 50 }, retry: 5 }), back.socket);
+});
+
+test('a device that does not answer leaves nothing running', async () => {
+  const connectTo = () => Promise.reject(new Error('No answer from 192.0.2.1 within 10s'));
+  await assert.rejects(deploy('192.0.2.1', plugin, '/no/such.zip', { connectTo }), /No answer/);
 });
 
 test('the zip is served at its unguessable URL only', async (t) => {

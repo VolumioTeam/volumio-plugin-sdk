@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
@@ -117,15 +117,21 @@ const commands = {
     const loaded = load(dir);
     if (loaded.failure) throw new Error(loaded.failure.message);
     const plugin = { id: loaded.manifest.id, type: loaded.manifest.type };
-    let zip = values.zip;
-    if (!zip) {
-      // Built here: a plugin with native modules is built for the device by scripts/build.sh, then deployed with --zip.
-      const built = packagePlugin(dir, { out: mkdtempSync(join(tmpdir(), 'volumio-deploy-')), epoch: Math.floor(Date.now() / 1000) });
-      process.stdout.write(print({ id: plugin.id, findings: built.provenance.gates.findings }));
-      if (!built.ok) return 1;
-      zip = built.zip;
+    // Built here, unless --zip: a plugin with native modules is built for the device by scripts/build.sh.
+    const out = values.zip ? undefined : mkdtempSync(join(tmpdir(), 'volumio-deploy-'));
+    let result;
+    try {
+      let zip = values.zip;
+      if (out) {
+        const built = packagePlugin(dir, { out, epoch: Math.floor(Date.now() / 1000) });
+        process.stdout.write(print({ id: plugin.id, findings: built.provenance.gates.findings }));
+        if (!built.ok) return 1;
+        zip = built.zip;
+      }
+      result = await deploy(host, plugin, zip, { progress: (line) => process.stdout.write(`${line}\n`) });
+    } finally {
+      if (out) rmSync(out, { recursive: true, force: true });
     }
-    const result = await deploy(host, plugin, zip, { progress: (line) => process.stdout.write(`${line}\n`) });
     process.stdout.write(result.log);
     process.stdout.write(result.started
       ? `✔ ${plugin.id} is running on ${host}\n`
@@ -137,7 +143,9 @@ const commands = {
     const { values, positionals: [host] } = parse(args, { seconds: { type: 'string' } });
     const seconds = values.seconds === undefined ? undefined : Number(values.seconds);
     if (!host || (seconds !== undefined && !(seconds > 0))) return usage();
-    const until = Promise.race([seconds ? sleep(seconds * 1000) : new Promise((resolve) => process.once('SIGINT', resolve)), stdoutClosed]);
+    // Ctrl-C ends it in both modes, so the device's live log is switched off again.
+    const interrupted = new Promise((resolve) => process.once('SIGINT', resolve));
+    const until = Promise.race([...(seconds ? [sleep(seconds * 1000)] : []), interrupted, stdoutClosed]);
     await followLog(host, (text) => process.stdout.write(text), until);
     return 0;
   },
