@@ -71,6 +71,14 @@ scripts/build.sh <plugin-dir> <armhf|amd64|arm64> [out-dir]
 | `G3.native-arch` | Every `.node` module is built for the target architecture |
 | `G3.lockfile` | `package-lock.json` is committed; a warning for v1 plugins |
 
+## G4: sandbox image
+
+G4 installs and starts the plugin in a container built from a real Volumio release, then compares what it did with what the manifest declares. The image is the root filesystem of the pinned V4 x86 release (`VOLUMIO_VERSION` and its sha256 in the script), so for now G4 runs on amd64 only. Build it with Docker; it needs about 13 GB free on Docker's disk:
+
+```bash
+scripts/sandbox-image.sh [tag]   # default tag volumio-sandbox:<version>-amd64
+```
+
 ## Signing
 
 The store signs each release it accepts: `<zip>.sig` is a [DSSE](https://github.com/secure-systems-lab/dsse) envelope whose payload (`volumio.plugin.release/v1`) binds the zip's sha256 to the plugin id, version, architecture and source commit, signed with Ed25519. The device trusts two keys, the active one and the next, so rotating the key needs no device update. `src/sign.js` (`@volumio/plugin-sdk/sign`) uses only Node's `crypto`; the device verifier follows it and is tested against envelopes it signs. Key ids use letters, digits, dot, dash and underscore.

@@ -23,3 +23,11 @@ test('actions are pinned by commit and the build image by digest', () => {
   for (const file of ['.github/workflows/build.yml', '.github/workflows/ci.yml']) assert.deepEqual(unpinned(read(file)), [], file);
   assert.match(read('scripts/build.sh'), /node:20-bookworm@sha256:[0-9a-f]{64}/);
 });
+
+test('the sandbox image pins the Volumio release and the tools image', () => {
+  const script = read('scripts/sandbox-image.sh');
+  assert.match(script, /^VOLUMIO_SHA256=[0-9a-f]{64}$/m);
+  assert.match(script, /debian:bookworm-slim@sha256:[0-9a-f]{64}/);
+  const version = script.match(/^VOLUMIO_VERSION=(\S+)$/m)?.[1];
+  assert.ok(script.match(/^VOLUMIO_URL=(\S+)$/m)?.[1].includes(`/${version}/`), 'URL matches VOLUMIO_VERSION');
+});
