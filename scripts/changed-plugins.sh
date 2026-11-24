@@ -8,8 +8,9 @@ set -euo pipefail
 if [ "${1:-}" = all ] && [ $# -eq 1 ]; then
   folders=$(git ls-tree -d --name-only HEAD)
 elif [ $# -eq 2 ]; then
-  # Changes at the root (README, .github) have no slash: -s drops them.
-  folders=$(git diff --name-only "$1...$2" | cut -d/ -f1 -s | sort -u)
+  # --no-renames: a file moved out of a plugin lists the folder it left too. Changes at the root
+  # (README, .github) have no slash: -s drops them.
+  folders=$(git diff --name-only --no-renames "$1...$2" | cut -d/ -f1 -s | sort -u)
 else
   echo "Usage: $0 <base> <head> | $0 all" >&2
   exit 2
