@@ -93,9 +93,15 @@ test('a v1 plugin is read through the shim; new v2 fields are todo, not errors',
 });
 
 test('a v1 name with a hyphen is a schema error on id', () => {
-  const dir = plugin({ ...required, 'package.json': { ...v1Package, name: 'gpio-buttons' } });
+  const dir = plugin({ ...required, 'package.json': { ...v1Package, name: 'gpio-buttons2' } });
   const schemaErrors = check(dir, opts).findings.filter((f) => f.rule === 'G1.schema');
-  assert.deepEqual(schemaErrors.map((f) => f.path), ['/id']);
+  assert.deepEqual(schemaErrors.map((f) => `${f.severity} ${f.path}`), ['error /id']);
+});
+
+test('a plugin published with a hyphen in its id keeps it, with a warning', () => {
+  const dir = plugin({ ...required, 'package.json': { ...v1Package, name: 'gpio-buttons' } });
+  const schemaFindings = check(dir, opts).findings.filter((f) => f.rule === 'G1.schema');
+  assert.deepEqual(schemaFindings.map((f) => `${f.severity} ${f.path}`), ['warning /id']);
 });
 
 test('unreadable JSON is a finding, not a crash', () => {
