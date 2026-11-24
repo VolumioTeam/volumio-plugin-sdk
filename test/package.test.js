@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, rmSync, writeFileSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -132,4 +132,23 @@ test('a v2 manifest without engines is a finding, not a crash', () => {
   const result = packagePlugin(plugin({ 'volumio-plugin.json': rest, 'package.json': { main: 'index.js' } }), { ...options(out), baseline: {} });
   assert.equal(result.ok, false);
   assert.ok(result.provenance.gates.findings.some((f) => f.rule === 'G1.schema' && /engines/.test(f.message)));
+});
+
+test('package --report-only reports gate errors without failing, but a build that cannot run still fails', () => {
+  const cli = (dir, ...flags) => spawnSync(process.execPath, [new URL('../bin/volumio-plugin.js', import.meta.url).pathname, 'package', dir, '--out', mkdtempSync(join(tmpdir(), 'vpk-out-')), ...flags],
+    { encoding: 'utf8', env: { ...process.env, SOURCE_DATE_EPOCH: '1700000000' } });
+  const noReadme = plugin();
+  rmSync(join(noReadme, 'README.md'));
+
+  const strict = cli(noReadme);
+  assert.equal(strict.status, 1);
+  assert.match(strict.stdout, /G1\.file\.readme/);
+  const report = cli(noReadme, '--report-only');
+  assert.equal(report.status, 0, report.stderr);
+  assert.match(report.stdout, /^✖ example_plugin\n[\s\S]*G1\.file\.readme[\s\S]*\.zip\nsha256 [0-9a-f]{64}\n$/);
+
+  const broken = plugin({ 'package.json': { name: 'example_plugin', version: '1.2.3', main: 'index.js', scripts: { build: 'exit 3' } } });
+  const failed = cli(broken, '--report-only');
+  assert.equal(failed.status, 1);
+  assert.match(failed.stderr, /npm run build failed/);
 });

@@ -82,22 +82,26 @@ A plugin repository builds its release with the reusable workflow:
 ```yaml
 jobs:
   build:
-    uses: VolumioTeam/volumio-plugin-sdk/.github/workflows/build.yml@v0.2.0
+    uses: VolumioTeam/volumio-plugin-sdk/.github/workflows/build.yml@v0.3.0
     with:
       path: .   # plugin folder inside the repository
 ```
 
-It runs one build per architecture the manifest declares (`volumio-plugin arch`), each through `scripts/build.sh`, in the Volumio build container: Debian Bookworm, Node 20, ShellCheck from Bookworm, gitleaks pinned by version and sha256, under QEMU for ARM. Run the same build locally with Docker:
+It runs one build per architecture the manifest declares (`volumio-plugin arch`), each through `scripts/build.sh`, in the Volumio build container: Debian Bookworm, Node 20, ShellCheck from Bookworm, gitleaks pinned by version and sha256, under QEMU for ARM. The gate findings also go to the run summary, and the zips are uploaded as `<artifact>-<arch>` (`artifact` defaults to `plugin`). With `report-only: true`, gate errors are reported without failing the build; a build that cannot run still fails. Run the same build locally with Docker:
 
 ```bash
-scripts/build.sh <plugin-dir> <armhf|amd64|arm64> [out-dir]
+[REPORT_ONLY=true] scripts/build.sh <plugin-dir> <armhf|amd64|arm64> [out-dir]
 ```
+
+A repository with one plugin per top-level folder, like `volumio-plugins-sources-bookworm`, builds only the plugins a pull request changes: `scripts/changed-plugins.sh <base> <head>` prints them as a JSON array for a job matrix (`all` prints every plugin folder), and each one calls the workflow with its own `path` and `artifact`.
 
 `volumio-plugin package` copies the plugin without `.git`, `.github`, `node_modules` and test folders, installs the production dependencies (after `npm run build` when the plugin has one), runs G1 `--built` and G2 on the result, and writes:
 
 - `<id>-<version>-<arch>.zip`: files at the root, sorted, one mtime (the commit time, or `SOURCE_DATE_EPOCH`), so the same commit gives the same bytes
 - `<zip>.sha256`
 - `<id>-<version>-<arch>.provenance.json`: source repository and commit, workflow run, SDK version, every gate finding
+
+It prints the findings, the zip and its sha256 on stdout (npm's output goes to stderr), and exits 1 when a gate finds an error, unless `--report-only` is given. A build that cannot run (a failing `npm install` or `npm run build`) exits 1 either way.
 
 | Rule | Checks |
 | --- | --- |

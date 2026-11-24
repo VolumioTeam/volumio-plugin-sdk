@@ -69,8 +69,9 @@ export function nativeFindings(dir, arch) {
     }));
 }
 
+// npm's output goes to stderr: stdout carries only what package reports (findings, zip, sha256).
 const run = (cmd, args, cwd) => {
-  const result = spawnSync(cmd, args, { cwd, stdio: ['ignore', 'inherit', 'inherit'] });
+  const result = spawnSync(cmd, args, { cwd, stdio: ['ignore', 2, 'inherit'] });
   if (result.error || result.status !== 0) throw new Error(`${cmd} ${args.join(' ')} failed in ${cwd}`);
 };
 

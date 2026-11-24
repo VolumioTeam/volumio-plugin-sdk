@@ -12,7 +12,15 @@ on:
       sdk-ref:
         description: volumio-plugin-sdk ref whose CLI builds the plugin; defaults to this release
         type: string
-        default: v0.2.0
+        default: v0.3.0
+      report-only:
+        description: Report gate errors without failing the build (a build that cannot run still fails)
+        type: boolean
+        default: false
+      artifact:
+        description: Name prefix of the uploaded artifacts, <artifact>-<arch>; set it when one run builds several plugins
+        type: string
+        default: plugin
 
 permissions:
   contents: read
@@ -63,10 +71,11 @@ jobs:
       - env:
           PLUGIN_PATH: plugin/${{ inputs.path }}
           ARCH: ${{ matrix.arch }}
+          REPORT_ONLY: ${{ inputs.report-only }}
         run: sdk/scripts/build.sh "$PLUGIN_PATH" "$ARCH" dist-plugin
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
         with:
-          name: plugin-${{ matrix.arch }}
+          name: ${{ inputs.artifact }}-${{ matrix.arch }}
           path: dist-plugin/
           if-no-files-found: error
