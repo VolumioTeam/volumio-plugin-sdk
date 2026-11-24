@@ -55,7 +55,7 @@ const header = (path) => {
 };
 
 // The npm package a file belongs to: the last node_modules/<name> or node_modules/@scope/<name> in its path.
-const owner = (file) => /^(.*node_modules\/(?:@[^/]+\/)?[^/]+)\//.exec(file)?.[1] ?? '';
+const owner = (file) => /^((?:.*\/)?node_modules\/(?:@[^/]+\/)?[^/]+)\//.exec(file)?.[1] ?? '';
 // node-gyp-build loads build/ before prebuilds/: a binary there must match even when a prebuild does.
 const loadedFirst = (file) => /^\/?build\//.test(file.slice(owner(file).length));
 

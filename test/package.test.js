@@ -98,10 +98,13 @@ test('G3 checks each package on its own, and build/ even when a prebuild matches
     'node_modules/foo/build/Release/foo.node': elf(62),
     'node_modules/foo/prebuilds/linux-arm/foo.node': elf(40),
     'node_modules/foo/node_modules/bar/bar.node': elf(62),
+    'node_modules/foo-node_modules/build/Release/baz.node': elf(62),
+    'node_modules/foo-node_modules/build/Debug/baz.node': elf(40),
   });
   assert.deepEqual(nativeFindings(dir, 'armhf').map((f) => f.file), [
     'node_modules/foo/build/Release/foo.node',
     'node_modules/foo/node_modules/bar/bar.node',
+    'node_modules/foo-node_modules/build/Release/baz.node',
   ]);
 });
 
