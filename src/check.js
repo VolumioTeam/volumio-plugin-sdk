@@ -42,10 +42,13 @@ const SCHEMA_FIXES = {
   '/id': 'Use 2-64 letters, digits and underscores; no hyphens, the crypter rejects them',
 };
 
+// Published before the id pattern: a new id would orphan the installed copies, so theirs is only a warning.
+const LEGACY_IDS = new Set(['gpio-buttons', 'volumio-stream-watchdog']);
+
 const schemaFindings = (manifest, todo) =>
   validateManifest(manifest)
     .filter((e) => !todo.includes(e.path.slice(1)))
-    .map((e) => error('G1.schema', `${e.path.slice(1) || 'manifest'} ${e.message}`, SCHEMA_FIXES[e.path], e.path));
+    .map((e) => (e.path === '/id' && LEGACY_IDS.has(manifest.id) ? warning : error)('G1.schema', `${e.path.slice(1) || 'manifest'} ${e.message}`, SCHEMA_FIXES[e.path], e.path));
 
 const ruleFindings = ({ manifest }, functions) => {
   const findings = [];

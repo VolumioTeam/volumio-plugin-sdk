@@ -31,7 +31,7 @@ npx --package=@volumio/plugin-sdk volumio-plugin check [plugin-dir ...] [--built
 
 | Rule | Checks |
 | --- | --- |
-| `G1.schema` | The manifest against `schema/manifest.schema.json` |
+| `G1.schema` | The manifest against `schema/manifest.schema.json`. `gpio-buttons` and `volumio-stream-watchdog` were published with a hyphen in their id: for them that error is a warning |
 | `G1.function` | `function` is in `registry/functions.json`, the closed registry moderators curate |
 | `G1.engines` | `engines.volumio` is a semver range |
 | `G1.file.readme` | A README exists |
