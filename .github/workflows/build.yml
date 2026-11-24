@@ -12,7 +12,7 @@ on:
       sdk-ref:
         description: volumio-plugin-sdk ref whose CLI builds the plugin; defaults to this release
         type: string
-        default: v0.3.0
+        default: v0.3.1
       report-only:
         description: Report gate errors without failing the build (a build that cannot run still fails)
         type: boolean

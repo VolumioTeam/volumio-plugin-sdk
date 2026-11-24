@@ -54,12 +54,22 @@ const header = (path) => {
   }
 };
 
-/** G3: every native module must be built for the target architecture. */
+// The npm package a file belongs to: the last node_modules/<name> or node_modules/@scope/<name> in its path.
+const owner = (file) => /^((?:.*\/)?node_modules\/(?:@[^/]+\/)?[^/]+)\//.exec(file)?.[1] ?? '';
+// node-gyp-build loads build/ before prebuilds/: a binary there must match even when a prebuild does.
+const loadedFirst = (file) => /^\/?build\//.test(file.slice(owner(file).length));
+
+/**
+ * G3: every package with native modules must have one built for the target architecture. A package may ship
+ * a binary per platform and pick one at runtime (prebuilds/, gpiox_arm64.node next to gpiox_arm32.node).
+ */
 export function nativeFindings(dir, arch) {
-  return files(dir)
+  const binaries = files(dir)
     .filter((f) => f.endsWith('.node'))
-    .map((file) => ({ file, found: elfArch(header(join(dir, file))) }))
-    .filter(({ found }) => found !== arch)
+    .map((file) => ({ file, found: elfArch(header(join(dir, file))) }));
+  const covered = new Set(binaries.filter(({ found }) => found === arch).map(({ file }) => owner(file)));
+  return binaries
+    .filter(({ file, found }) => found !== arch && (loadedFirst(file) || !covered.has(owner(file))))
     .map(({ file, found }) => ({
       rule: 'G3.native-arch',
       severity: 'error',
