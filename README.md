@@ -82,7 +82,7 @@ A plugin repository builds its release with the reusable workflow:
 ```yaml
 jobs:
   build:
-    uses: VolumioTeam/volumio-plugin-sdk/.github/workflows/build.yml@v0.3.0
+    uses: VolumioTeam/volumio-plugin-sdk/.github/workflows/build.yml@v0.3.1
     with:
       path: .   # plugin folder inside the repository
 ```
@@ -105,7 +105,7 @@ It prints the findings, the zip and its sha256 on stdout (npm's output goes to s
 
 | Rule | Checks |
 | --- | --- |
-| `G3.native-arch` | Every `.node` module is built for the target architecture |
+| `G3.native-arch` | Every package with `.node` modules has one built for the target architecture, and its `build/` ones all are |
 | `G3.lockfile` | `package-lock.json` is committed; a warning for v1 plugins |
 
 ## Signing

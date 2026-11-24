@@ -76,6 +76,35 @@ test('a native module built for another architecture fails G3', () => {
   ]);
 });
 
+test('G3 passes a package that ships a binary per platform when one is for the target', () => {
+  const mz = Buffer.from('MZ windows binary, not ELF');
+  const dir = tree({
+    'node_modules/@iiot2k/gpiox/gpiox_arm32.node': elf(40),
+    'node_modules/@iiot2k/gpiox/gpiox_arm64.node': elf(183),
+    'node_modules/@serialport/bindings-cpp/prebuilds/linux-arm/node.napi.armv7.node': elf(40),
+    'node_modules/@serialport/bindings-cpp/prebuilds/linux-x64/node.napi.glibc.node': elf(62),
+    'node_modules/@serialport/bindings-cpp/prebuilds/win32-x64/node.napi.node': mz,
+  });
+  assert.deepEqual(nativeFindings(dir, 'armhf'), []);
+  assert.deepEqual(nativeFindings(dir, 'arm64').map((f) => f.file), [
+    'node_modules/@serialport/bindings-cpp/prebuilds/linux-arm/node.napi.armv7.node',
+    'node_modules/@serialport/bindings-cpp/prebuilds/linux-x64/node.napi.glibc.node',
+    'node_modules/@serialport/bindings-cpp/prebuilds/win32-x64/node.napi.node',
+  ]);
+});
+
+test('G3 checks each package on its own, and build/ even when a prebuild matches', () => {
+  const dir = tree({
+    'node_modules/foo/build/Release/foo.node': elf(62),
+    'node_modules/foo/prebuilds/linux-arm/foo.node': elf(40),
+    'node_modules/foo/node_modules/bar/bar.node': elf(62),
+  });
+  assert.deepEqual(nativeFindings(dir, 'armhf').map((f) => f.file), [
+    'node_modules/foo/build/Release/foo.node',
+    'node_modules/foo/node_modules/bar/bar.node',
+  ]);
+});
+
 test('packages a plugin: zip at root, no tests or git, sha256 and provenance next to it', () => {
   const out = mkdtempSync(join(tmpdir(), 'vpk-out-'));
   const result = packagePlugin(plugin(), options(out));
