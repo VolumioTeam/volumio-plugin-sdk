@@ -15,7 +15,7 @@ import { localSigner, releaseStatement, signRelease, verifyRelease } from '../sr
 const USAGE = `Usage:
   volumio-plugin init <dir> --id <id> --type <type> --function <function> --title <title> --description <text> [--author <name>] [--skip-install]
   volumio-plugin check [plugin-dir ...] [--built] [--json]
-  volumio-plugin package [plugin-dir] [--out <dir>]
+  volumio-plugin package [plugin-dir] [--out <dir>] [--report-only]
   volumio-plugin arch [plugin-dir]
   volumio-plugin deploy <device> [plugin-dir] [--zip <zip>]
   volumio-plugin logs <device> [--seconds <n>]
@@ -103,12 +103,13 @@ const commands = {
     return results.some((r) => r.findings.some((f) => f.severity === 'error')) ? 1 : 0;
   },
   package(args) {
-    const { values, positionals } = parse(args, { out: { type: 'string', default: 'dist-plugin' } });
+    const { values, positionals } = parse(args, { out: { type: 'string', default: 'dist-plugin' }, 'report-only': { type: 'boolean' } });
     const dir = positionals[0] ?? '.';
     const result = packagePlugin(dir, { out: values.out, epoch: epochOf(dir), meta });
     process.stdout.write(print({ id: result.provenance.id, findings: result.provenance.gates.findings }));
     process.stdout.write(`${result.zip}\nsha256 ${result.sha256}\n`);
-    return result.ok ? 0 : 1;
+    // --report-only: gate errors are reported, not fatal; a build that cannot run still exits 1.
+    return result.ok || values['report-only'] ? 0 : 1;
   },
   // Installs on a device of the local network, starts the plugin, prints what it logged.
   async deploy(args) {
