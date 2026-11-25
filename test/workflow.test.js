@@ -20,6 +20,6 @@ test('the pin check sees quoted references and keys', () => {
 });
 
 test('actions are pinned by commit and the build image by digest', () => {
-  for (const file of ['.github/workflows/build.yml', '.github/workflows/ci.yml']) assert.deepEqual(unpinned(read(file)), [], file);
+  for (const file of ['.github/workflows/build.yml', '.github/workflows/ci.yml', '.github/workflows/publish.yml']) assert.deepEqual(unpinned(read(file)), [], file);
   assert.match(read('scripts/build.sh'), /node:20-bookworm@sha256:[0-9a-f]{64}/);
 });

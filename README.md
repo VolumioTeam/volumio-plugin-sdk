@@ -121,6 +121,8 @@ volumio-plugin verify <zip> --key <id>=<public.pem> [--key ...]
 
 Bump `version` in `package.json` and the `sdk-ref` default in `.github/workflows/build.yml` together (a test fails otherwise), merge, then tag `v<version>` on `main`. Release tags cannot be moved or deleted. Plugin repositories call the workflow at a tag, never at `main`; actions are pinned by commit and the build image by digest.
 
+Publishing the GitHub release publishes the same version to npm (`.github/workflows/publish.yml`), after the tests and a check that the tag is `v` plus the package version. It uses npm trusted publishing: no npm token is stored, the package on npmjs.com trusts this repository's `publish.yml`, and every version carries a provenance attestation. The first version was published by hand, because npm sets a trusted publisher only on a package that already exists.
+
 ```bash
 npm test
 ```
