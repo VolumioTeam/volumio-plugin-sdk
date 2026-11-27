@@ -1,6 +1,6 @@
 # @volumio/plugin-sdk
 
-The Volumio plugin manifest v2 (`volumio-plugin.json`), its JSON Schema, and the `volumio-plugin` CLI.
+The Volumio plugin manifest (`volumio-plugin.json`), its JSON Schema, and the `volumio-plugin` CLI.
 
 ## A new plugin
 
@@ -19,7 +19,7 @@ Every new plugin carries instructions for coding agents, so that someone who doe
 
 `AGENTS.md` stays the same across plugin APIs. `VOLUMIO_API.md` is the one file that changes with the API: a test fails when the schema's `engines.api` and the file's title disagree.
 
-The developer edits only `volumio-plugin.json`: `package` writes `name`, `version`, `description`, `license`, `engines.volumio` and `volumio_info` into the `package.json` that ships, which is what Volumio reads today. `engines.api` is `"1"`: the code follows the plugin API Volumio runs today; `"2"` is kept for framework v2.
+The developer edits only `volumio-plugin.json`: `package` writes `name`, `version`, `description`, `license`, `engines.volumio` and `volumio_info` into the `package.json` that ships, which is what Volumio reads today. `engines.api` is `"1"`, the plugin API Volumio runs. Here a v1 plugin has only a `package.json` and a v2 plugin has a `volumio-plugin.json`: both run on that same API.
 
 ## Checks
 
