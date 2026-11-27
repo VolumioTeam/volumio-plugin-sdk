@@ -43,7 +43,7 @@ test('accepts a call permission on another plugin', () => {
   assert.deepEqual(validateManifest({ ...draft(), permissions: ['plugin:spop.getState'] }), []);
 });
 
-test('rejects api 2 until framework v2 exists', () => {
+test('rejects any plugin API but 1', () => {
   assert.deepEqual(paths(validateManifest({ ...draft(), engines: { volumio: '>=4', api: '2' } })), ['/engines/api']);
 });
 

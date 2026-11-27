@@ -1,7 +1,7 @@
 {
   "name": "@volumio/plugin-sdk",
   "version": "0.3.1",
-  "description": "Volumio plugin manifest v2: schema, v1 shim and the volumio-plugin CLI",
+  "description": "Volumio plugin manifest (volumio-plugin.json): schema, v1 shim and the volumio-plugin CLI",
   "type": "module",
   "bin": {
     "volumio-plugin": "bin/volumio-plugin.js"
